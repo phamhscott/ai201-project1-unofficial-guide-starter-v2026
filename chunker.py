@@ -22,6 +22,7 @@ to it, write down what you saw, and move on. That's a real observation about
 your pipeline, not giving up.
 """
 
+import re
 from dataclasses import dataclass
 
 import config
@@ -97,7 +98,62 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
       - Would splitting on paragraph breaks keep more thoughts intact than
         splitting on a character count?
     """
-    return fallback_split(documents)
+    chunks: list[Chunk] = []
+
+    for doc in documents:
+        text = doc.text.strip()
+        section_starts = [
+            match.start() for match in re.finditer(r"(?m)^##\s+", text)
+        ]
+
+        if not section_starts:
+            # Keep the starter behavior for an unstructured document. The
+            # city-guides corpus uses Markdown sections, but this fallback
+            # prevents other corpora from becoming one oversized chunk.
+            pieces = [
+                chunk.text
+                for chunk in fallback_split(
+                    [doc],
+                    chunk_size=config.CHUNK_SIZE,
+                    overlap=config.CHUNK_OVERLAP,
+                )
+            ]
+        else:
+            title_match = re.search(r"(?m)^#\s+[^\n]+", text)
+            title = title_match.group(0).strip() if title_match else ""
+
+            # Preserve the title and introductory paragraph as their own
+            # self-contained chunk instead of dropping text before the first
+            # section heading.
+            pieces = []
+            introduction = text[: section_starts[0]].strip()
+            if introduction:
+                pieces.append(introduction)
+
+            # Each labelled section becomes one semantic chunk. Repeating the
+            # document title gives headings such as "When to go" the town or
+            # regional context needed for retrieval.
+            for position, start in enumerate(section_starts):
+                end = (
+                    section_starts[position + 1]
+                    if position + 1 < len(section_starts)
+                    else len(text)
+                )
+                section = text[start:end].strip()
+                piece = f"{title}\n\n{section}" if title else section
+                pieces.append(piece)
+
+        for index, piece in enumerate(pieces):
+            chunks.append(
+                Chunk(
+                    text=piece,
+                    source=doc.source,
+                    index=index,
+                    produced_by="chunker.py::split_documents",
+                )
+            )
+
+    return chunks
 
 
 def describe(chunks: list[Chunk]) -> str:

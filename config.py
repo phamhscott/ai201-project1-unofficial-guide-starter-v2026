@@ -24,11 +24,11 @@ CORPUS = os.getenv("AI201_CORPUS", "city_guides")
 
 
 # ─── Chunking (Milestone 3) ──────────────────────────────────────────────────
-# These are deliberately plain, generic numbers. Milestone 3 is where you
-# replace them with numbers that fit the documents you actually read.
+# City guides are split on Markdown section headings. The size remains the
+# fallback for documents without headings; complete sections do not overlap.
 
-CHUNK_SIZE = 800        # characters per chunk
-CHUNK_OVERLAP = 120     # characters shared between neighbouring chunks
+CHUNK_SIZE = 800        # fallback size for an unstructured document
+CHUNK_OVERLAP = 0       # section boundaries already preserve context
 
 
 # ─── Retrieval (Milestone 4) ─────────────────────────────────────────────────
