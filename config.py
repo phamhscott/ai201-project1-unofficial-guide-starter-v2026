@@ -33,7 +33,9 @@ CHUNK_OVERLAP = 0       # section boundaries already preserve context
 
 # ─── Retrieval (Milestone 4) ─────────────────────────────────────────────────
 
-TOP_K = 5               # how many chunks to pull back per question
+TOP_K = 7               # how many chunks to pull back per question
+                        # found that for one question (#4) relevant chunk was not
+                        # in top 5, but was in top 7. So increased to 7.
 
 # The relevance gate. If the best chunk is further away than this, the system
 # refuses to answer instead of handing the model thin material.
@@ -43,7 +45,9 @@ TOP_K = 5               # how many chunks to pull back per question
 # 0.6 is a reasonable starting point, not a right answer. Milestone 4 has you
 # measure your own two groups of distances and put the cutoff in the gap.
 # Most corpora land somewhere between 0.45 and 0.75.
-THRESHOLD = 0.6
+THRESHOLD = 0.65        # the hardest in scope question was 0.5351 distance.
+                        # the closest out of scope was 0.7542 distance.
+                        # so setting threshold to 0.65 should be a clearer midpoint.
 
 
 # ─── Models ──────────────────────────────────────────────────────────────────

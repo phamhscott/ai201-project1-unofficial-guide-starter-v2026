@@ -118,14 +118,21 @@ cards only.
 <!-- One complete question and answer, pasted as text, with the source line
      visible. Milestone 4. -->
 
-**Question:**
+**Question: What are the most difficult places to get around with limited mobility?**
 
 **Answer:**
 
 ```
+(best distance 0.586, cutoff 0.65)
+
+According to `guide_accessibility.md`, the places that are difficult to get around with limited mobility are Kestrelford, Halden Bay, Corry Vale, and Elder Ness.
+
+Sources retrieved: guide_accessibility.md, guide_corry_vale.md, guide_halden_bay.md, guide_thornby_wells.md, guide_walking.md
+
+1 model calls this session, 767 tokens (730 in, 37 out)
 ```
 
-**My relevance cutoff:**
+**My relevance cutoff: 0.65**
 
 <!-- The number you set in config.py, and how you got there.
 
@@ -138,7 +145,21 @@ cards only.
 
 | Question | In corpus? | Best distance |
 |---|---|---|
-|  |  |  |
+|What are the four most difficult towns to get around with limited mobility?  | T | 0.5351 |
+|What is the train frequency and duration to get to Brightwater? | T | 0.3091 |
+|What town has fresh seafood?| T | 0.4043 |
+|What can you see at Thornby Wells? | T | 0.3794 |
+|When is the recommended time to go visit Kestrelford?| T | 0.3375 |
+|What is the capital of Mongolia? | F | 0.7542 |
+|How do I change the oil in a diesel engine | F | 0.8881 |
+|Who won the 1994 World Cup? | F | 0.8990 |
+|What is the recommended dosage of ibuprofen for a headache?| F | 0.8350 |
+|How do I write a for loop in Rust?| F | 0.8365 |
+
+
+Looking at the results for the corpus and out of scope questions, it does appear that there could be a clear gap that could be made when looking at distances.
+For the in corpus questions, the hardest question had a best distance of 0.5351. For the out of scope questions, the closest question had the best distance of 0.7542. The existing 0.60 relevance cutoff did classify all ten correctly, but for now the midpoint of these two distances which is 0.645 is more well informed and
+clearly derived so I set the relevance cutoff to be 0.65.
 
 ## How I Used AI
 
