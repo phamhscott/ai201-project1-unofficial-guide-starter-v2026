@@ -102,7 +102,7 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
 
     for doc in documents:
         text = doc.text.strip()
-        section_starts = [
+        section_starts = [      # find the start of each section heading in the document with regex
             match.start() for match in re.finditer(r"(?m)^##\s+", text)
         ]
 
@@ -135,7 +135,7 @@ def split_documents(documents: list[Document]) -> list[Chunk]:
             # regional context needed for retrieval.
             for position, start in enumerate(section_starts):
                 end = (
-                    section_starts[position + 1]
+                    section_starts[position + 1]    # find the end of the section by looking for the next section heading
                     if position + 1 < len(section_starts)
                     else len(text)
                 )

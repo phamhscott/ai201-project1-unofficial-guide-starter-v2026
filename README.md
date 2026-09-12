@@ -28,6 +28,9 @@
 
      Milestone 5. -->
 
+I chose the city-guides corpus which contains 9 specific town guides as well as general guides that contain information across multiple towns. The goal of this system is to answer the users questions about city guide related topics that would be found in the original corpus documents. These could be specific town questions like "what kind of food is in Brightwater," or more general non-specific town questions like, "what are the best towns to visit during Summer?" By
+investigating each documents structure, specific city related and general, this system (The Unoffical guide) aims to make it easier to search through and find desired information quickly about cities.
+
 ## Chunking Strategy
 
 **Chunk size: 800**
@@ -172,9 +175,11 @@ clearly derived so I set the relevance cutoff to be 0.65.
 
      Milestone 5. -->
 
-**1.**
+**1. I asked AI to review my acceptance criterion to make sure they met the self-check marks. It reviewed the two new criterion that I created as well as the my reasoning for their targets, ensuring that it was quantifiably testable and describes one thing. One of my criterion could have been more specific and it considered that that the test might not be reproducible. I changed the keyword "relevant" that I had used to be very specific, describing to look at the orignal corpus text sections, ensuring that the test was well defined and someone else could check it without any ambuguity.**
 
-**2.**
+
+
+**2. I asked AI to help me write the chunking function that I had detailed and brainstormed. After reviewing the structure of the corpus I selected, city-guide, I realized that the original chunking by character length was not well suited, especially after seeing the results of the longest and shortest chunks. For this corpus specifcally, I found that the city specific documents had very convienent sections with around 300 chars each explaining a specific topic about the city (what to eat, when to go, etc). With this observation, I found it reasonable to try to make these chunks correspond to each of these sections. I found that it was able to implement these details. I reviewed and it found that some parts could be more clearer/cleaner so I added some comments for readibility.**
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
