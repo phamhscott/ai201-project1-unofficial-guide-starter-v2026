@@ -26,6 +26,13 @@ contains the answer.
 <!-- e.g. "One of my questions is about a topic only two documents mention, so
      I expect that one to be hard." -->
 
+I chose 4 of 5 because one test question comes from
+[`guide_accessibility.md`](corpora/city_guides/documents/guide_accessibility.md),
+one of the five cross-town guides. Unlike the town-specific guides, it groups
+information about many places under shared topics, so its relevant passage may
+be harder to retrieve. I still expect the system to retrieve the needed chunk
+for most questions.
+
 ---
 
 ## 2. Every answer names a source
@@ -35,6 +42,12 @@ Every answer the system produces names at least one source document.
 **Why this target:**
 <!-- Why all five and not four? What about your setup makes that achievable —
      or what would have to go wrong for it not to be? -->
+
+I chose 5 of 5 because the system attaches source information to every chunk,
+which can be inspected with `python app.py chunks`, and each in-scope answer is
+generated from retrieved chunks. Source attribution is a built-in requirement,
+so accepting fewer than five would allow an answer that cannot be traced back
+to the corpus.
 
 ---
 
@@ -53,9 +66,19 @@ in at least 4 of 5 tries.
 <!-- What did your distances look like when you set the cutoff in Milestone 4?
      Was there a clean gap, or did the two groups overlap? -->
 
+I chose 4 of 5 because the relevance cutoff makes a yes or no decision from
+semantic distance, and an out-of-scope question may occasionally share enough
+language with the topic-organized guides to pass the gate. I allow one such
+boundary case, but more than one would mean the cutoff does not reliably
+separate supported questions from unsupported ones.
+
 ---
 
-## 4. Something about your chunks
+## 4. Chunks preserve complete guide sections
+
+At least 4 of the 5 chunks printed by `python app.py chunks -n 5` contain
+exactly one complete guide section, from its heading through its final sentence,
+and contain no text from another section.
 
 <!-- YOU WRITE THIS ONE.
 
@@ -73,11 +96,19 @@ in at least 4 of 5 tries.
 
 **Why this target:**
 
-
+I chose 4 of 5 because the town-specific guides use repeated sections such as
+`Getting there`, `Eat and drink`, and `When to go`, making section boundaries
+natural chunk boundaries. I allow one miss because section lengths vary and the
+cross-town guides use a different structure, but more than one would suggest
+that the chunking strategy does not fit this corpus.
 
 ---
 
-## 5. Your choice
+## 5. Cross-town answers include every listed place
+
+For the limited-mobility test question, the answer names all four places listed
+under `Difficult` in `guide_accessibility.md`: Kestrelford, Halden Bay, Corry
+Vale, and Elder Ness.
 
 <!-- YOU WRITE THIS ONE TOO.
 
@@ -91,6 +122,10 @@ in at least 4 of 5 tries.
 
 **Why this target:**
 
+I require all four places because the question asks for a complete group from a
+cross-town topic, so omitting even one would make the answer incomplete. This
+also tests whether the system can use a cross-town guide rather than assemble a
+partial answer from separate town-specific documents.
 
 
 ---
