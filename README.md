@@ -1,5 +1,6 @@
 # The Unofficial Guide
 
+Scott Pham, City-Guides Corpus
 <!-- Replace this line with your name and which corpus you picked. -->
 
 > **This file is your submission.** Fill it in as you go — most sections get
@@ -29,7 +30,7 @@
      Milestone 5. -->
 
 I chose the city-guides corpus which contains 9 specific town guides as well as general guides that contain information across multiple towns. The goal of this system is to answer the users questions about city guide related topics that would be found in the original corpus documents. These could be specific town questions like "what kind of food is in Brightwater," or more general non-specific town questions like, "what are the best towns to visit during Summer?" By
-investigating each documents structure, specific city related and general, this system (The Unoffical guide) aims to make it easier to search through and find desired information quickly about cities.
+investigating each documents structure, specific city related and general, this system (The Unofficial guide) aims to make it easier to search through and find desired information quickly about cities.
 
 ## Chunking Strategy
 
@@ -37,7 +38,7 @@ investigating each documents structure, specific city related and general, this 
 
 **Overlap: 0**
 
-For the city-guide corpus, a more reasonmable chunking approach entails structure-aware splitting, not just splitting by char length. Since each doc, specifically town specific ones have discrete sections that are prefixed by a relevant heading (What to see, eat, etc), it feels right to try to have each chunk correspond with a section. However, these specific town docs are not the only types of docs. There are also docs that cross multiple towns and are general (guide_accesibility, guide_walking, etc). The sections here do not follow the same structure. Most importantly, they do not have the same char length (max of town specific: 378 chars, max of cross-town: 724). Since we want structure aware-splitting anyways, the chunk size should just aim to preserve the sections so keeping this at 800 is reasonable. Furthermore, the zero overlap prevents neighboring topics from being mixed (food to eat at a town vs when to visit the town) aiming to again switch to the structure aware chunking by section.
+For the city-guide corpus, a more reasonable chunking approach entails structure-aware splitting, not just splitting by char length. Since each doc, specifically town specific ones have discrete sections that are prefixed by a relevant heading (What to see, eat, etc), it feels right to try to have each chunk correspond with a section. However, these specific town docs are not the only types of docs. There are also docs that cross multiple towns and are general (guide_accessibility, guide_walking, etc). The sections here do not follow the same structure. Most importantly, they do not have the same char length (max of town specific: 378 chars, max of cross-town: 724). Since we want structure aware-splitting anyways, the chunk size should just aim to preserve the sections so keeping this at 800 is reasonable. Furthermore, the zero overlap prevents neighboring topics from being mixed (food to eat at a town vs when to visit the town) aiming to again switch to the structure aware chunking by section.
 
 <!-- What about YOUR documents made you pick these numbers? Short posts and
      long sectioned guides don't want the same chunking, and "800 seemed
@@ -86,7 +87,7 @@ May to September. Outside those months the pub in the third village closes, the 
 
 ## Eat and drink
 
-A tearoom attached to the mill, open 10 to 4 daily except Tuesdays, which sells bread made from the flour ground twenty metres awayand is the reason most people come. One pub, food served lunchtimes and Thursday to Saturday evenings.
+A tearoom attached to the mill, open 10 to 4 daily except Tuesdays, which sells bread made from the flour ground twenty metres away and is the reason most people come. One pub, food served lunchtimes and Thursday to Saturday evenings.
 ```
 
 **Chunk 4** — source: `guide_kestrelford.md#6` — produced by: `chunker.py::split_documents`
@@ -175,11 +176,11 @@ clearly derived so I set the relevance cutoff to be 0.65.
 
      Milestone 5. -->
 
-**1. I asked AI to review my acceptance criterion to make sure they met the self-check marks. It reviewed the two new criterion that I created as well as the my reasoning for their targets, ensuring that it was quantifiably testable and describes one thing. One of my criterion could have been more specific and it considered that that the test might not be reproducible. I changed the keyword "relevant" that I had used to be very specific, describing to look at the orignal corpus text sections, ensuring that the test was well defined and someone else could check it without any ambuguity.**
+**1. I asked AI to review my acceptance criterion to make sure they met the self-check marks. It reviewed the two new criterion that I created as well as the my reasoning for their targets, ensuring that it was quantifiable and describes one thing. One of my criterion could have been more specific and it considered that that the test might not be reproducible. I changed the keyword "relevant" that I had used to be very specific, describing to look at the original corpus text sections, ensuring that the test was well defined and someone else could check it without any ambiguity.**
 
 
 
-**2. I asked AI to help me write the chunking function that I had detailed and brainstormed. After reviewing the structure of the corpus I selected, city-guide, I realized that the original chunking by character length was not well suited, especially after seeing the results of the longest and shortest chunks. For this corpus specifcally, I found that the city specific documents had very convienent sections with around 300 chars each explaining a specific topic about the city (what to eat, when to go, etc). With this observation, I found it reasonable to try to make these chunks correspond to each of these sections. I found that it was able to implement these details. I reviewed and it found that some parts could be more clearer/cleaner so I added some comments for readibility.**
+**2. I asked AI to help me write the chunking function that I had detailed and brainstormed. After reviewing the structure of the corpus I selected, city-guide, I realized that the original chunking by character length was not well suited, especially after seeing the results of the longest and shortest chunks. For this corpus specifically, I found that the city specific documents had very convenient sections with around 300 chars each explaining a specific topic about the city (what to eat, when to go, etc). With this observation, I found it reasonable to try to make these chunks correspond to each of these sections. I found that it was able to implement these details. I reviewed and it found that some parts could be more clearer/cleaner so I added some comments for readability.**
 
 <!-- ── Stretch features ─────────────────────────────────────────────────────
      Doing one? Say so here BEFORE you start. A feature this README never
