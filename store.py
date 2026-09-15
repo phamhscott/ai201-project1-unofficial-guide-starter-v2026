@@ -27,6 +27,7 @@ from dataclasses import dataclass
 # confused help-channel messages.
 os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
+from anyio import Path
 import chromadb  # noqa: E402
 
 import config
@@ -183,6 +184,7 @@ def search(
     top_k: int | None = None,
     corpus: str | None = None,
     variant: str = "default",
+    files: list[Path] | None = None,
 ) -> list[Result]:
     """
     Retrieve the chunks closest in meaning to a question.
@@ -202,6 +204,10 @@ def search(
     raw = collection.query(
         query_embeddings=embed([question]),
         n_results=min(top_k, collection.count()),
+    ) if files is None else collection.query(
+        query_embeddings=embed([question]),
+        n_results=min(top_k, collection.count()),
+        where={"source": {"$in": [f.name for f in files]}},
     )
 
     results: list[Result] = []

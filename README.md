@@ -187,6 +187,52 @@ clearly derived so I set the relevance cutoff to be 0.65.
      claims earns nothing.
      ───────────────────────────────────────────────────────────────────────── -->
 
+## Stretch Feature: Source Metadata Filtering
+
+I added source metadata filtering so retrieval can be limited to one or more
+specific source files with `--files`. `store.py::search` applies a Chroma `$in`
+filter to the `source` metadata field. Both `app.py::cmd_retrieve` and
+`app.py::ask_pipeline` pass their `--files` selections to this shared search
+function.
+
+I ran the same query with and without a source filter. Without the filter, the
+top three results came from both `guide_halden_bay.md` and `guide_seasons.md`,
+and the Halden Bay chunk ranked first. Filtering to `guide_seasons.md` removed
+the Halden Bay result, returned only chunks from the selected source, and moved
+the Summer section of `guide_seasons.md` into the first position.
+
+**Without a filter:**
+
+```text
+python app.py retrieve "What are the best towns to visit during summer?" --top-k 3
+
+Question: What are the best towns to visit during summer?
+
+#   distance   source                           preview
+----------------------------------------------------------------------------------------------------
+1   0.5208     guide_halden_bay.md              # Halden Bay  ## When to go  June and September are ...
+2   0.5461     guide_seasons.md                 # When to visit the region  ## Summer, June to Augus...
+3   0.5564     guide_seasons.md                 # When to visit the region  ## Autumn, September to ...
+
+Gate: best distance 0.521 is under the 0.65 cutoff
+```
+
+**Filtered to `guide_seasons.md`:**
+
+```text
+python app.py retrieve "What are the best towns to visit during summer?" --top-k 3 --files guide_seasons.md
+
+Question: What are the best towns to visit during summer?
+
+#   distance   source                           preview
+----------------------------------------------------------------------------------------------------
+1   0.5461     guide_seasons.md                 # When to visit the region  ## Summer, June to Augus...
+2   0.5564     guide_seasons.md                 # When to visit the region  ## Autumn, September to ...
+3   0.5934     guide_seasons.md                 # When to visit the region  ## Spring, March to May ...
+
+Gate: best distance 0.546 is under the 0.65 cutoff
+```
+
 ---
 
 # Week 2

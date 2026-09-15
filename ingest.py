@@ -40,7 +40,7 @@ def clean_text(raw: str) -> str:
     return text.strip()
 
 
-def load_documents(corpus: str | None = None) -> list[Document]:
+def load_documents(corpus: str | None = None, files: list[Path] | None = None) -> list[Document]:
     """
     Read every .txt and .md file in the corpus folder.
 
@@ -57,12 +57,20 @@ def load_documents(corpus: str | None = None) -> list[Document]:
         )
 
     documents: list[Document] = []
-    for path in sorted(folder.iterdir()):
-        if path.suffix.lower() not in {".txt", ".md"}:
-            continue
-        text = clean_text(path.read_text(encoding="utf-8"))
-        if text:
-            documents.append(Document(source=path.name, text=text))
+    if files is not None:
+        for path in files:
+            if path.suffix.lower() not in {".txt", ".md"}:
+                continue
+            text = clean_text(path.read_text(encoding="utf-8"))
+            if text:
+                documents.append(Document(source=path.name, text=text))
+    else:
+        for path in sorted(folder.iterdir()):
+            if path.suffix.lower() not in {".txt", ".md"}:
+                continue
+            text = clean_text(path.read_text(encoding="utf-8"))
+            if text:
+                documents.append(Document(source=path.name, text=text))
 
     if not documents:
         raise ValueError(f"{folder} has no .txt or .md files in it.")

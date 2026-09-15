@@ -40,7 +40,7 @@ def cmd_index(args):
 
     started = time.time()
 
-    documents = load_documents(corpus)
+    documents = load_documents(corpus) if not args.files else load_documents(corpus, files=[config.corpus_path(corpus) / f for f in args.files])
     print(f"  loaded   {describe_docs(documents)}")
 
     chunks = split_documents(documents)
@@ -103,7 +103,11 @@ def cmd_chunks(args):
     from ingest import load_documents
     from chunker import split_documents
 
-    chunks = split_documents(load_documents(args.corpus or config.CORPUS))
+    if args.files:
+        files = [config.corpus_path(args.corpus or config.CORPUS) / f for f in args.files]
+        chunks = split_documents(load_documents(args.corpus or config.CORPUS, files=files))
+    else:
+        chunks = split_documents(load_documents(args.corpus or config.CORPUS))
 
     if args.from_doc:
         sample = _chunks_from_doc(chunks, args.from_doc)
@@ -154,6 +158,12 @@ def cmd_retrieve(args):
         top_k=args.top_k or config.TOP_K,
         corpus=args.corpus or config.CORPUS,
         variant=args.variant,
+    ) if not args.files else search(
+        args.question,
+        top_k=args.top_k or config.TOP_K,
+        corpus=args.corpus or config.CORPUS,
+        variant=args.variant,
+        files=[config.corpus_path(args.corpus or config.CORPUS) / f for f in args.files],
     )
 
     if not results:
@@ -183,6 +193,7 @@ def ask_pipeline(
     threshold=None,
     on_gate=None,
     on_prompt=None,
+    files=None
 ):
     """Retrieve, gate, answer. Returns the outcome and prints nothing.
 
@@ -208,6 +219,12 @@ def ask_pipeline(
         top_k=top_k or config.TOP_K,
         corpus=corpus or config.CORPUS,
         variant=variant,
+    ) if files is None else search(
+        question,
+        top_k=top_k or config.TOP_K,
+        corpus=corpus or config.CORPUS,
+        variant=variant,
+        files=[config.corpus_path(corpus or config.CORPUS) / f for f in files],
     )
     decision = gate.check(results, threshold=threshold)
     if on_gate is not None:
@@ -244,6 +261,7 @@ def _ask_one(
     threshold,
     show_distances=True,
     show_prompt=False,
+    files = None
 ):
     import gate
     from generate import GROUNDING_INSTRUCTION
@@ -271,6 +289,7 @@ def _ask_one(
         threshold=threshold,
         on_gate=print_distances if show_distances else None,
         on_prompt=print_prompt if show_prompt else None,
+        files=files
     )
 
     if outcome["refused"]:
@@ -295,6 +314,7 @@ def cmd_ask(args):
                 args.top_k,
                 args.threshold,
                 show_prompt=args.show_prompt,
+                files=args.files
             )
         else:
             print("Ask a question, or press Enter on an empty line to quit.\n")
@@ -313,6 +333,7 @@ def cmd_ask(args):
                     args.top_k,
                     args.threshold,
                     show_prompt=args.show_prompt,
+                    files=args.files
                 )
     finally:
         print(gen.usage())
@@ -337,6 +358,11 @@ def build_parser():
     sub.add_parser("corpora", help="list available corpora").set_defaults(func=cmd_corpora)
 
     p_index = sub.add_parser("index", help="build the search index")
+    p_index.add_argument(
+        "--files",
+        nargs="+",
+        help="index these specific files",
+    )
     p_index.set_defaults(func=cmd_index)
 
     p_chunks = sub.add_parser("chunks", help="print sample chunks (Milestone 3)")
@@ -355,11 +381,17 @@ def build_parser():
         metavar="0,4,8",
         help="print the chunks at these exact positions instead of a sample",
     )
+    p_chunks.add_argument(
+        "--files",
+        nargs="+",
+        help="print chunks from these specific files",
+    )
     p_chunks.set_defaults(func=cmd_chunks)
 
     p_ret = sub.add_parser("retrieve", help="show distances only (Milestone 4)")
     p_ret.add_argument("question")
     p_ret.add_argument("--top-k", type=int)
+    p_ret.add_argument("--files", nargs="+", help="retrieve from these specific files")
     p_ret.set_defaults(func=cmd_retrieve)
 
     p_ask = sub.add_parser("ask", help="ask a question")
@@ -371,6 +403,7 @@ def build_parser():
         action="store_true",
         help="print the assembled prompt before the answer",
     )
+    p_ask.add_argument("--files", nargs="+", help="ask using only these specific files")
     p_ask.set_defaults(func=cmd_ask)
 
     return parser
