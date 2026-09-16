@@ -255,15 +255,169 @@ Gate: best distance 0.546 is under the 0.65 cutoff
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunks contain the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Chunks preserve complete guide sections | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Cross-town answer includes every listed place | All 4 places | 4/4 | 4/4 | 4/4 | MET |
 
 <!-- Underneath, paste the REAL output for each criterion from one of your
      runs — the actual text your system produced, not a description of it.
      Name the file and function that produced it. -->
+
+The complete three-run raw results is in
+[`results/run_2026-09-16_1419_before.md`](results/run_2026-09-16_1419_before.md).
+
+### Criterion 1 — Retrieved chunks contain the answer
+
+**Claim:** All five questions retrieved answer-bearing corpus content in each
+run, for a result of 5/5 in all three runs. The Thornby Wells question below is
+one representative run.
+
+**Location:** `store.py::search` retrieved the chunks produced by
+`chunker.py::split_documents`; `run_eval.py::write_report` recorded the result
+in `results/run_2026-09-16_1419_before.md`.
+
+**Output — Thornby Wells, run 1:**
+
+```text
+Best distance: 0.3794 (passed the gate)
+Sources retrieved: guide_thornby_wells.md
+
+Based on the documents, you can see the pump room (where you can drink the water), the formal and well-kept gardens behind the pump room, and the assembly rooms which host concerts most weekends (*guide_thornby_wells.md*).
+```
+
+### Criterion 2 — Every answer names a source
+
+**Claim:** All five answers named at least one source in every run, for a result
+of 5/5 in all three runs. The Brightwater answer below includes two named source
+documents.
+
+**Location:** `generate.py::answer_from_chunks` produced the answer, and
+`run_eval.py::write_report` recorded it in
+`results/run_2026-09-16_1419_before.md`.
+
+**Output — Brightwater train, run 1:**
+
+```text
+Best distance: 0.3091 (passed the gate)
+Sources retrieved: guide_brightwater.md, guide_kestrelford.md, guide_marchwood.md, guide_pellew_sands.md, guide_regional_transport.md, guide_thornby_wells.md
+
+Trains run to Brightwater eleven times a day on weekdays and six times on Sundays, taking 50 minutes.
+
+Source: `guide_brightwater.md` (also mentioned in `guide_regional_transport.md`)
+```
+
+### Criterion 3 — Gate stops out-of-corpus questions
+
+**Claim:** The relevance gate refused all five out-of-corpus questions. This
+retrieval-and-threshold check is deterministic, so the same 5/5 result appears
+in all three run columns.
+
+**Location:** `run_eval.py::check_out_of_scope` passed each question through
+retrieval and `gate.py::check`; `run_eval.py::write_report` recorded the result
+in `results/run_2026-09-16_1419_before.md`.
+
+**Output — deterministic gate check:**
+
+```text
+Produced by `run_eval.py::check_out_of_scope`, cutoff 0.65. Refused 5 of 5.
+
+| Out-of-scope question | Best distance | Gate |
+|---|---|---|
+| What is the capital of Mongolia? | 0.754 | refused |
+| How do I change the oil in a diesel engine? | 0.888 | refused |
+| Who won the 1994 World Cup? | 0.899 | refused |
+| What is the recommended dosage of ibuprofen for a headache? | 0.835 | refused |
+| How do I write a for loop in Rust? | 0.836 | refused |
+```
+
+### Criterion 4 — Chunks preserve complete guide sections
+
+**Claim:** Each of the five sampled chunks contains one complete section and no
+text from a neighboring section, for a result of 5/5. Repeating the command
+three times produced the same deterministic sample. I counted the document
+title and introductory paragraph in `guide_accessibility.md#0` as one complete
+top-level introductory section.
+
+**Location:** `chunker.py::split_documents` produced the chunks, and
+`app.py::cmd_chunks` selected and printed the sample.
+
+**Output — one run of `python app.py chunks -n 5`:**
+
+```text
+98 chunks total. Showing 5, spread across the corpus.
+
+======================================================================
+Chunk 1  |  source: guide_accessibility.md#0  |  produced by: chunker.py::split_documents
+======================================================================
+# Getting around the region with limited mobility
+
+An honest assessment rather than a promotional one. Some of these places are
+difficult and it is better to know in advance.
+
+======================================================================
+Chunk 2  |  source: guide_corry_vale.md#6  |  produced by: chunker.py::split_documents
+======================================================================
+# Corry Vale
+
+## When to go
+
+May to September. Outside those months the pub in the third village closes, the farm shop reduces its hours, and several footpaths become genuinely boggy rather than merely wet. The road is not gritted above the second village and is impassable in snow.
+
+======================================================================
+Chunk 3  |  source: guide_givens_mill.md#3  |  produced by: chunker.py::split_documents
+======================================================================
+# Givens Mill
+
+## Eat and drink
+
+A tearoom attached to the mill, open 10 to 4 daily except Tuesdays, which sells bread made from the flour ground twenty metres away and is the reason most people come. One pub, food served lunchtimes and Thursday to Saturday evenings.
+
+======================================================================
+Chunk 4  |  source: guide_kestrelford.md#6  |  produced by: chunker.py::split_documents
+======================================================================
+# Kestrelford
+
+## When to go
+
+Late spring and early autumn. The Saturday market runs year-round but is much reduced from November to February. August is busy with walkers. The single-track approach road is genuinely difficult in snow and the town can be cut off for a day or two most winters.
+
+======================================================================
+Chunk 5  |  source: guide_regional_transport.md#1  |  produced by: chunker.py::split_documents
+======================================================================
+# Getting around the region
+
+## The railway
+
+The line runs along the river valley, connecting Brightwater to the regional
+hub in 50 minutes. Eleven services a day on weekdays, six on Sundays. The line
+north of Brightwater closed in 1963 and everything beyond it is bus or car.
+
+Tickets are cheaper booked the day before than on the day, and considerably
+cheaper than that booked a week ahead. There is no ticket office at
+Brightwater station outside weekday mornings; the machine on the platform takes
+cards only.
+```
+
+### Criterion 5 — Cross-town answer includes every listed place
+
+**Claim:** The limited-mobility answer named all four required places in each
+run, for a result of 4/4 in all three runs.
+
+**Location:** `run_eval.py::run_once` retrieved the context and called
+`generate.py::answer_from_chunks`; `run_eval.py::write_report` recorded the
+answer in `results/run_2026-09-16_1419_before.md`.
+
+**Output — limited mobility, run 1:**
+
+```text
+Best distance: 0.5351 (passed the gate)
+Sources retrieved: guide_accessibility.md, guide_corry_vale.md, guide_givens_mill.md, guide_walking.md
+
+Based on the provided documents, the text lists four difficult locations for limited mobility: Kestrelford, Halden Bay, Corry Vale, and Elder Ness (guide_accessibility.md).
+```
+
 
 ## Verdicts
 
