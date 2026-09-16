@@ -458,6 +458,58 @@ Based on the provided documents, the text lists four difficult locations for lim
 
      Milestone 3. -->
 
+No criteria were missed, so there is no failed pipeline stage or failure
+mechanism to diagnose. All five criteria met their targets in every run and in fact got perfect 5/5 scores.
+However this only shows that several of the tests were predictable or narrow.
+
+### Target I Would Tighten
+
+Criterion 4 was set too low. Its original target allowed one of the five
+sampled chunks to mix sections, but all five chunks preserved their section
+boundaries in every check. I would tighten its target from **4 of 5** to the
+following:
+
+> All 5 of the 5 chunks printed by `python app.py chunks -n 5` contain exactly
+> one complete guide section, from its heading through its final sentence, and
+> contain no text from another section.
+
+This is a specific tighter target that is reasonable since the chunks really never do change after the first index. The original criterion was measurable and remains unchanged.
+
+
+### Testing Gaps
+
+Criterion 2 only checks whether an answer names a source, not whether that
+source actually supports every claim in the answer. Because source metadata is
+attached to every retrieved chunk and source naming is part of the generation
+instructions, this was a relatively "safe" target. A stronger future
+criterion would check that every named source contains the information used in
+the answer, rather than checking only that a filename is present.
+
+Criterion 3 is deterministic with the same indexed corpus, embeddings, questions,
+and cutoff that produce the same retrieval distances. Repeating its 5/5 result in
+three columns therefore does not provide three independent and meaningful trials. A stronger
+future test would use a fixed set of harder out-of-corpus questions chosen
+before running the evaluation. Those questions should deliberately share
+travel or city-guide language with the corpus while still asking for facts the
+documents do not contain. Keeping that harder set fixed would make the test
+reproducible while putting more pressure on the 0.65 relevance cutoff.
+
+Criterion 4 has a similar limitation because `python app.py chunks -n 5`
+selects the same deterministic sample from the same corpus each time. Raising
+the target to 5/5 makes the current standard stricter, but a broader future
+test would inspect a predetermined set of chunks spanning town-specific
+guides, cross-town guides, and introductory sections. It might also be reasonable to perhaps
+index only a certain amount of sources in the corpus (not all at once) and essentially choose a partition of the whole corpus set to chunk across the runs, so that the results can be meaningfull and independent across the stages.
+
+Criterion 5 tests only one cross-town question. Repeating generation checks
+whether the answer remains complete across model calls, but retrieval uses the
+same question and therefore returns the same chunks each time. A stronger
+future evaluation would include more cross-town questions and paraphrased
+versions that ask for the same information without closely matching a corpus
+section heading. The current question set would also be stronger with more of
+this cross-town variety, because several existing questions closely resemble
+the headings or wording in the source documents.
+
 ## The Improvement
 
 **What I changed:**
