@@ -18,6 +18,7 @@ rest of the project if they were wrong:
 """
 
 import os
+import re
 import shutil
 from dataclasses import dataclass
 
@@ -29,6 +30,7 @@ os.environ.setdefault("ANONYMIZED_TELEMETRY", "False")
 
 from anyio import Path
 import chromadb  # noqa: E402
+from rank_bm25 import BM25Okapi
 
 import config
 from chunker import Chunk
@@ -178,6 +180,18 @@ def build_index(
 
     return len(chunks)
 
+RRF_K = 60
+
+
+def _tokenize(text: str) -> list[str]:
+    """Tokenize text for BM25 retrieval."""
+    return re.findall(r"[a-z0-9]+", text.lower())
+
+
+def _reciprocal_rank(rank: int) -> float:
+    """Compute the reciprocal rank for a given rank."""
+    return 1.0 / (rank + RRF_K)
+
 
 def search(
     question: str,
@@ -187,10 +201,17 @@ def search(
     files: list[Path] | None = None,
 ) -> list[Result]:
     """
-    Retrieve the chunks closest in meaning to a question.
+    Retrieve the chunks using semantic and keyword search (BM25).
 
-    Returns them nearest-first, each with its distance.
+    The returned order uses reciprocal-rank fusion. Each Result retains its
+    original cosine distance so the relevance gate remains calibrated to the
+    existing threshold.
     """
+
+    where = (
+        {"source": {"$in": [f.name for f in files]}} if files is not None else None
+    )
+
     top_k = top_k or config.TOP_K
     name = config.collection_name(corpus, variant)
 
@@ -201,25 +222,93 @@ def search(
             f"No index called '{name}'. Run `python app.py index` first."
         ) from exc
 
-    raw = collection.query(
-        query_embeddings=embed([question]),
-        n_results=min(top_k, collection.count()),
-    ) if files is None else collection.query(
-        query_embeddings=embed([question]),
-        n_results=min(top_k, collection.count()),
-        where={"source": {"$in": [f.name for f in files]}},
+
+    candidate_raw = (
+        collection.get(include=["documents", "metadatas"])
+        if where is None
+        else collection.get(include=["documents", "metadatas"], where=where)
     )
 
+    candidate_ids = candidate_raw["ids"]
+    candidate_documents = candidate_raw["documents"]
+    candidate_metadatas = candidate_raw["metadatas"]
+
+    if not candidate_ids:
+        return []
+
+    semantic_raw = (
+        collection.query(
+            query_embeddings=embed([question]),
+            n_results=len(candidate_ids),
+        )
+        if where is None
+        else collection.query(
+            query_embeddings=embed([question]),
+            n_results=len(candidate_ids),
+            where=where,
+        )
+    )
+
+    semantic_ids = semantic_raw["ids"][0]
+    semantic_distances = semantic_raw["distances"][0]
+
+    semantic_rank = {
+        chunk_id: rank for rank, chunk_id in enumerate(semantic_ids, start=1)
+    }
+
+    distance_by_id = dict(zip(semantic_ids, semantic_distances))
+
+    bm25 = BM25Okapi([_tokenize(doc) for doc in candidate_documents])
+
+    bm25_scores = bm25.get_scores(_tokenize(question))
+
+    keyword_indexes = sorted(
+        range(len(candidate_ids)),
+        key=lambda candidate_index: bm25_scores[candidate_index],
+        reverse=True,
+    )
+
+    keyword_rank = {
+        candidate_ids[candidate_index]: rank
+        for rank, candidate_index in enumerate(keyword_indexes, start=1)
+    }
+
+    fused_ids = sorted(
+        candidate_ids,
+        key=lambda chunk_id: (
+            -(
+                _reciprocal_rank(semantic_rank[chunk_id])
+                + _reciprocal_rank(keyword_rank[chunk_id])
+            ),
+            semantic_rank[chunk_id],
+        ),
+    )
+
+    selected_ids = fused_ids[: min(top_k, len(fused_ids))]
+
+    best_semantic_id = semantic_ids[0]
+
+    if best_semantic_id not in selected_ids:
+        selected_ids[-1] = best_semantic_id
+
+    candidate_by_id = {
+        chunk_id: (doc, meta)
+        for chunk_id, doc, meta in zip(
+            candidate_ids, candidate_documents, candidate_metadatas
+        )
+    }
+
     results: list[Result] = []
-    for text, meta, distance in zip(
-        raw["documents"][0], raw["metadatas"][0], raw["distances"][0]
-    ):
+
+    for chunk_id in selected_ids:
+        text, meta = candidate_by_id[chunk_id]
+
         results.append(
             Result(
                 text=text,
                 source=str(meta.get("source", "unknown")),
-                label=f"{meta.get('source', 'unknown')}#{meta.get('index', 0)}",
-                distance=float(distance),
+                label=chunk_id,
+                distance=float(distance_by_id[chunk_id]),
                 produced_by=str(meta.get("produced_by", "unknown")),
             )
         )

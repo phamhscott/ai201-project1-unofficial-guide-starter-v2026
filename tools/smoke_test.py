@@ -92,11 +92,13 @@ def main():
         results = search("what should I know about this?", corpus=corpus)
         check(f"  retrieves", len(results) > 0, f"top-{len(results)}")
         check(
-            f"  results are ordered nearest first",
-            all(
-                results[i].distance <= results[i + 1].distance
-                for i in range(len(results) - 1)
-            ),
+            f"  retrieval respects top-k",
+            len(results) <= config.TOP_K,
+            f"returned {len(results)} of at most {config.TOP_K}",
+        )
+        check(
+            f"  retrieved chunks are unique",
+            len({result.label for result in results}) == len(results),
         )
         check(
             f"  distances are cosine-shaped (0 to 2)",
