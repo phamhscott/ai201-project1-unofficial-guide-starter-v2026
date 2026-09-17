@@ -577,17 +577,82 @@ inside `TOP_K = 7`.
 
 ## What's Still Broken
 
-<!-- For each criterion still missed after your fix: what you'd do about it,
-     and why you stopped where you did.
+None of the five criteria remained missed after the improvement. However, the
+passing scores do not mean that every part of the system is working as well as
+it could. The clearest remaining problem is answer focus. In run 2 of the last
+question, the system gave the requested seasons but then added related details
+about the April market and August walkers that were not necessary to answer the
+question. This output came from `run_eval.py::run_once`, which retrieved with
+`store.py::search` and generated the answer with
+`generate.py::answer_from_chunks`:
 
-     "I ran out of time" is fine if it's true. Pretending nothing is left is
-     not.
+```text
+Based on the provided documents, the recommended times to visit Kestrelford are late spring and early autumn (*guide_kestrelford.md*). Additionally, the Kestrelford Saturday market builds back to full size through April (*guide_seasons.md*). August is also noted as a busy time for walkers (*guide_kestrelford.md* / *guide_seasons.md*).
+```
 
-     Milestone 5. -->
+The additional statements are supported by the retrieved documents, so this
+answer still passed the existing criteria. However, they make the answer less
+direct and show a weakness that Criterion 2 does not measure. That criterion
+only checks whether an answer names a source and it does not check whether every
+claim is necessary, whether the named source supports that claim, or whether
+extra retrieved sources distracted the model.
+
+A next improvement would be to tighten the grounding prompt so it asks for only
+the information needed to answer the question, then add a scorer or manual
+criterion that checks every factual claim against its named source. I stopped
+after hybrid retrieval because this unit permits one system improvement. A
+prompt/criterion/test question change or a new scoring method would be a second change, but this would make it more difficult
+to compare the before-and-after result to BM25 and reciprocal-rank fusion.
+
+The evaluation itself also still has a ceiling problem. All five criteria
+passed before the improvement, so the run-log totals could not show the rank
+improvement from seventh to second. The separate retrieval output exposed that
+change, but a stronger evaluation would have measured answer-chunk rank from
+the beginning.
 
 ## What I'd Do Differently
 
-<!-- Knowing what you know now — which of your five criteria would you write
-     differently, and why?
+Knowing what I know now, I would make Criterion 1 more strict by measuring
+where the chunk that contains the answer appears, not just whether it appears anywhere in
+the top seven. For example, I could require the relevant chunk to appear
+in the top three results for at least four of five questions. That would have
+captured the Thornby Wells weakness and made the effect of hybrid search visible
+in the before-and-after run logs.
 
-     Milestone 5. -->
+I would also replace Criterion 2's source-name check with a claim-support check where
+every factual claim in an answer should be supported by the source named for
+that claim. This would test citation quality instead of just looking at if the answer
+included any filename.
+
+The test questions should put more pressure on the system as well. I would
+precommit a larger variety of town-specific, cross-town, and paraphrased
+questions that do not closely repeat document headings. For the deterministic
+out-of-corpus test, I would prepare multiple fixed sets of difficult questions
+before testing. Each set would use city or travel vocabulary found in the
+corpus while asking for facts the corpus does not contain. That would provide
+meaningfully different trials without choosing easier or harder questions after
+seeing results. Criterion 4 could similarly inspect a predetermined sample that
+includes town guides, cross-town guides, and introductory chunks instead of
+repeating the same five chunks. All of these questions, sets, and targets would
+need to be written and committed before the next formal evaluation.
+
+## How I Used AI — Unit 2
+
+**3. I asked AI to help organize the evaluation evidence and look for patterns
+that the 5/5 totals might hide.** It mapped claims to the relevant result files,
+functions, and exact text output, and highlighted that the Thornby Wells
+`What to see` chunk was only seventh under semantic retrieval. I checked that
+against the actual retrieval output and used it as the specific weakness behind
+my improvement. I kept the original criteria and test questions unchanged
+rather than altering them after seeing the results.
+
+**4. I asked AI for a high-level way to combine BM25 keyword search with the
+existing semantic search using reciprocal-rank fusion.** After I implemented
+the approach, retrieval raised a `KeyError`. I asked AI to review my code, and
+it found that BM25 ranked every candidate while the semantic rank dictionary
+contained only the first `top_k` candidates. It also pointed out that fusion
+scores needed to be ordered from highest to lowest. I changed semantic retrieval
+to rank the same candidate set as BM25, corrected the fusion ordering, and used
+clearer names such as `candidate_index` to distinguish a candidate's original
+index from its calculated rank. I questioned some specific coding decisions like the `enumerate` mapping it suggested, then verified both filtered and
+unfiltered retrieval before running the formal after-test.
