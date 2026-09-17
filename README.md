@@ -517,10 +517,20 @@ the headings or wording in the source documents.
 
 **What I changed:**
 
+I changed `store.py::search` from semantic-only retrieval to hybrid retrieval.
+The function now ranks every candidate once by semantic similarity and once by
+BM25 keyword matching, then combines those two rankings with reciprocal-rank
+fusion. The final results keep their original cosine distances so the existing
+0.65 relevance gate still measures semantic similarity.
+
 **Why I picked it:**
 
-<!-- Connect it to a specific diagnosis above in one sentence. If you can't,
-     you picked a fix because it sounded impressive. -->
+I picked hybrid search because the Criterion 1 diagnosis found a specific
+retrieval weakness for one of the questions, "What can you see at Thornby Wells?." Semantic search
+placed the answer-bearing `What to see` chunk seventh, which was only revealed when changing
+`TOP_K = 7`. Since BM25 could reward the exact town name and the question's
+"see" wording (keywords), it directly addressed that weak ranking used during retrieval rather than changing
+the chunking, relevance cutoff, or test questions.
 
 ### Run Log — After
 
@@ -529,20 +539,41 @@ the headings or wording in the source documents.
 
 | Criterion | Target | Run 1 | Run 2 | Run 3 | Verdict |
 |---|---|---|---|---|---|
-| 1. Retrieved chunk contains the answer | 4 of 5 |  |  |  |  |
-| 2. Every answer names a source | 5 of 5 |  |  |  |  |
-| 3. Gate stops out-of-corpus questions | 4 of 5 |  |  |  |  |
-| 4. | | | | | |
-| 5. | | | | | |
+| 1. Retrieved chunks contain the answer | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 2. Every answer names a source | 5 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 4. Chunks preserve complete guide sections | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
+| 5. Cross-town answer includes every listed place | All 4 places | 4/4 | 4/4 | 4/4 | MET |
 
 **Did it help?**
 
-<!-- Say plainly whether it did, and how you know. If it made things worse,
-     say that — a change that backfired, honestly reported, earns full credit
-     and is more interesting than one that worked. What matters is that you can
-     tell.
+Yes, it helped the specific retrieval weakness, although the five aggregate
+criterion scores did not change because every before-run score was already at a 5/5. After the improvement, all five questions still passed in all
+three runs, every answer still named a source, and the gate still refused all
+5/5 out-of-corpus questions. This shows no regression on the original criteria.
 
-     Milestone 4. -->
+The more meaningful comparison is the rank of the chunk that contains the answer to the Thornby Wells
+question (Q4). The following output was produced by `app.py retrieve`, using
+`store.py::search`, for `What can you see at Thornby Wells?` with `--top-k 10`.
+Before hybrid search, semantic retrieval placed the needed section seventh:
+
+```text
+7   0.5180   guide_thornby_wells.md   ## What to see
+8   0.5221   guide_walking.md          ## Easy, on good surfaces
+```
+
+After hybrid search, reciprocal-rank fusion placed that same section second:
+
+```text
+1   0.3794   guide_thornby_wells.md   # Thornby Wells  Thornby Wells was a spa town for ab...
+2   0.5180   guide_thornby_wells.md   # Thornby Wells  ## What to see  The pump room is op...
+3   0.4009   guide_thornby_wells.md   # Thornby Wells  ## Getting around  Flat and compact...
+```
+
+The `What to see` chunk's cosine distance stayed `0.5180` since hybrid search does
+not change embeddings or semantic distance. The improvement was its position,
+from rank 7 to rank 2, which gives the chunk containing the relevant information a much larger margin
+inside `TOP_K = 7`.
 
 ## What's Still Broken
 
