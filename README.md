@@ -476,7 +476,10 @@ following:
 This is a specific tighter target that is reasonable since the chunks really never do change after the first index. The original criterion was measurable and remains unchanged.
 
 
-### Testing Gaps
+### Testing Gaps / Weaknesses
+
+Although Criterion 1 was met, the retrieval stage showed a weak margin on the Thornby Wells question (Q4). The chunk containing the correct answer, `What to see`, ranked seventh, exactly at the `TOP_K = 7` boundary. Semantic similarity ranked several other Thornby Wells chunks above the answer section, so reducing top-k by even one would have caused a retrieval miss. This was not a formal failure, but it exposed a retrieval-stage weakness that the 5/5 results did not reflect.
+
 
 Criterion 2 only checks whether an answer names a source, not whether that
 source actually supports every claim in the answer. Because source metadata is
