@@ -432,9 +432,9 @@ Based on the provided documents, the text lists four difficult locations for lim
 
 | # | Criterion | Verdict | How I decided |
 |---|---|---|---|
-| 1 | Retrieved chunks contain the answer | MET | In every run, all five questions had at least one retrieved chunk containing information eneded to answer the question. Each run scored 5/5, exceeding the 4/5 target. |
+| 1 | Retrieved chunks contain the answer | MET | In every run, all five questions had at least one retrieved chunk containing information needed to answer the question. Each run scored 5/5, exceeding the 4/5 target. |
 | 2 | Every answer names a source | MET| All five generated answers named at least one source document in every run. Each run scored 5/5, meeting the 5/5 target. |
-| 3 | Gate stops out-of-corpus questions | MET | All five out-of-corpus questions had best distanced above the 0.65 cutoff, so the gate refused 5/5. Because thre retrieval is deterministic, this one result is repeated across the three run columns. |
+| 3 | Gate stops out-of-corpus questions | MET | All five out-of-corpus questions had best distanced above the 0.65 cutoff, so the gate refused 5/5. Because the retrieval is deterministic, this one result is repeated across the three run columns. |
 | 4 | Chunks preserve complete guide sections | MET | All five sampled chunked contained one complete section without text from an adjacent section. The same deterministic sample scored 5/5 in each check, exceeding the 4/5 target. |
 | 5 | Cross-town answer includes every listed town | MET | In all three runs, the limited mobility answer named Kestrelford, Halden Bay, Corry Vale, and Elder Ness. Each run included all 4/4 required places.  |
 
@@ -502,7 +502,7 @@ selects the same deterministic sample from the same corpus each time. Raising
 the target to 5/5 makes the current standard stricter, but a broader future
 test would inspect a predetermined set of chunks spanning town-specific
 guides, cross-town guides, and introductory sections. It might also be reasonable to perhaps
-index only a certain amount of sources in the corpus (not all at once) and essentially choose a partition of the whole corpus set to chunk across the runs, so that the results can be meaningfull and independent across the stages.
+index only a certain amount of sources in the corpus (not all at once) and essentially choose a partition of the whole corpus set to chunk across the runs, so that the results can be meaningful and independent across the stages.
 
 Criterion 5 tests only one cross-town question. Repeating generation checks
 whether the answer remains complete across model calls, but retrieval uses the
@@ -544,6 +544,9 @@ the chunking, relevance cutoff, or test questions.
 | 3. Gate stops out-of-corpus questions | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 | 4. Chunks preserve complete guide sections | 4 of 5 | 5/5 | 5/5 | 5/5 | MET |
 | 5. Cross-town answer includes every listed place | All 4 places | 4/4 | 4/4 | 4/4 | MET |
+
+The complete three-run raw results is in
+[`run_2026-09-16_2058_after.md`](results/run_2026-09-16_2058_after.md).
 
 **Did it help?**
 
