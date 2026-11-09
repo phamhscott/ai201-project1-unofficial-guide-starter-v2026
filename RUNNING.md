@@ -441,3 +441,44 @@ contains ten uncached answers plus separate missing-index and blank-input
 failure probes. The [cost summary](results/capstone_milestone3_cost.json)
 contains the ten request identifiers and measured averages. This verification
 used the current local source, without publishing commits to GitHub.
+
+### Formal capstone trials
+
+Commit the capstone criteria before this step. From the main repository root,
+prepare an isolated checkout using the same pinned setup:
+
+```powershell
+git clone . .cache/capstone-evaluation
+py -3.12 -m venv .cache/capstone-evaluation/.venv
+.\.cache\capstone-evaluation\.venv\Scripts\python.exe -m pip install -r .cache/capstone-evaluation/requirements-lock.txt
+Copy-Item .env.example .cache/capstone-evaluation/.env
+```
+
+Put your API key in that checkout's ignored `.env`. An existing isolated
+checkout prepared through these instructions can also be used after updating
+it to the same commit as the main repository. Keep port 5000 free, then run:
+
+```powershell
+.\.venv\Scripts\python.exe tools\run_capstone_eval.py --checkout .cache/capstone-evaluation --label before
+```
+
+The runner executes three trials with the fixed protocol in `criteria.md`.
+It rebuilds the isolated checkout's index for each trial and starts `serve.py`
+directly for the normal HTTP and timing checks. Each trial also uses isolated
+fault and accounting processes through `tools/capstone_probe_server.py`.
+Only that evaluation wrapper injects the specified model errors and missing
+metadata. Its forwarding spy captures real SDK usage metadata independently
+of the application's accounting fields. The production source is unchanged.
+
+Results go to `results/capstone_before/`, including the source fingerprints,
+criteria commit, HTTP observations, original JSONL records, independent API
+captures, timing comparisons, per-trial scores, and the five-row run log.
+An existing result directory is never overwritten. The runner preserves a
+failed trial and continues to the next scheduled trial. It does not replace
+failures with successful reruns. Controlled responses are labeled synthetic
+and are excluded from real API spending measurements.
+
+The later improvement uses the same command with `--label after`, after both
+checkouts have the same new commit. It writes a separate result directory.
+Each trial checks source fingerprints before and after execution so the
+runtime, criteria, and evaluator cannot change silently between trials.
