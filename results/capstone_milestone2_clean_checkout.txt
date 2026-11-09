@@ -1,0 +1,68 @@
+> git -c safe.directory=C:/Users/Scott/Documents/codepath/ai201/ai201-project1-unofficial-guide-starter-v2026/.cache/capstone-clean-checkout rev-parse HEAD
+f6cf6c159a61119bc181459c093618bb82a904a7
+
+> git -c safe.directory=C:/Users/Scott/Documents/codepath/ai201/ai201-project1-unofficial-guide-starter-v2026/.cache/capstone-clean-checkout status --short
+
+> C:\Users\Scott\Documents\codepath\ai201\ai201-project1-unofficial-guide-starter-v2026\.cache\capstone-clean-checkout\.venv\Scripts\python.exe --version
+Python 3.12.10
+
+> C:\Users\Scott\Documents\codepath\ai201\ai201-project1-unofficial-guide-starter-v2026\.cache\capstone-clean-checkout\.venv\Scripts\python.exe -m pip check
+No broken requirements found.
+
+> C:\Users\Scott\Documents\codepath\ai201\ai201-project1-unofficial-guide-starter-v2026\.cache\capstone-clean-checkout\.venv\Scripts\python.exe -m unittest discover -s tests -v
+test_api_usage_reaches_the_request_record (test_request_logging.RequestLoggingTests.test_api_usage_reaches_the_request_record) ... ok
+test_invalid_inputs_each_get_one_record_without_running_pipeline (test_request_logging.RequestLoggingTests.test_invalid_inputs_each_get_one_record_without_running_pipeline) ... ok
+test_pipeline_error_is_logged_without_exception_details (test_request_logging.RequestLoggingTests.test_pipeline_error_is_logged_without_exception_details) ... ok
+test_refusal_is_a_successful_response (test_request_logging.RequestLoggingTests.test_refusal_is_a_successful_response) ... ok
+test_success_record_matches_response (test_request_logging.RequestLoggingTests.test_success_record_matches_response) ... ok
+test_concurrent_requests_keep_their_own_usage (test_usage.UsageTests.test_concurrent_requests_keep_their_own_usage) ... ok
+test_missing_metadata_is_unknown_instead_of_zero (test_usage.UsageTests.test_missing_metadata_is_unknown_instead_of_zero) ... ok
+test_real_call_and_cache_hit_have_separate_usage (test_usage.UsageTests.test_real_call_and_cache_hit_have_separate_usage) ... ok
+test_retry_counts_attempts_and_marks_unreported_usage_unknown (test_usage.UsageTests.test_retry_counts_attempts_and_marks_unreported_usage_unknown) ...   [rate limit] service pushed back. Retrying in 1s (attempt 1 of 4).
+ok
+test_usage_context_resets_after_failure (test_usage.UsageTests.test_usage_context_resets_after_failure) ... ok
+
+----------------------------------------------------------------------
+Ran 10 tests in 0.057s
+
+OK
+
+> C:\Users\Scott\Documents\codepath\ai201\ai201-project1-unofficial-guide-starter-v2026\.cache\capstone-clean-checkout\.venv\Scripts\python.exe app.py index --corpus city_guides
+usage: app.py [-h] [--corpus CORPUS] [--variant VARIANT]
+              {corpora,index,chunks,retrieve,ask} ...
+app.py: error: unrecognized arguments: --corpus city_guides
+
+Continuing after correcting the documented corpus option placement.
+> git -c safe.directory=C:/Users/Scott/Documents/codepath/ai201/ai201-project1-unofficial-guide-starter-v2026/.cache/capstone-clean-checkout rev-parse HEAD
+1f16ce7d9b4e2faf03ea031c01e9ff7554b81e90
+
+> git -c safe.directory=C:/Users/Scott/Documents/codepath/ai201/ai201-project1-unofficial-guide-starter-v2026/.cache/capstone-clean-checkout status --short
+
+> C:\Users\Scott\Documents\codepath\ai201\ai201-project1-unofficial-guide-starter-v2026\.cache\capstone-clean-checkout\.venv\Scripts\python.exe app.py --corpus city_guides index
+Corpus: city_guides
+  loaded   14 documents, 28,958 characters, ~2,068 characters per document
+  chunked  98 chunks, 310 characters on average (shortest 23, longest 762), produced by chunker.py::split_documents
+  embedding 98 chunks (first run downloads the model)...
+  stored   98 chunks in 2.0s
+
+Ready. Try: python app.py ask "your question here"
+
+> C:\Users\Scott\Documents\codepath\ai201\ai201-project1-unofficial-guide-starter-v2026\.cache\capstone-clean-checkout\.venv\Scripts\python.exe tools/dev_session.py
+Development smoke check with real embeddings and the configured Gemini model
+GET /health -> 200 {"corpus": "city_guides", "detail": "ready", "index_ready": true, "status": "ok"}
+POST /ask -> 200 request_id=183ddecf772340608b383d2cbbbb0248 {"answer": "According to `guide_kestrelford.md`, late spring and early autumn are the best times to go to Kestrelford.", "best_distance": 0.3254, "corpus": "city_guides", "question": "When should I visit Kestrelford, according to the city guide?", "refused": false, "sources": ["guide_kestrelford.md", "guide_marchwood.md", "guide_seasons.md", "guide_walking.md"], "threshold": 0.65}
+POST /ask -> 200 request_id=0abd87dd138b42fb880a247e22069418 {"answer": "According to `guide_kestrelford.md`, late spring and early autumn are the best times to go to Kestrelford.", "best_distance": 0.3254, "corpus": "city_guides", "question": "When should I visit Kestrelford, according to the city guide?", "refused": false, "sources": ["guide_kestrelford.md", "guide_marchwood.md", "guide_seasons.md", "guide_walking.md"], "threshold": 0.65}
+POST /ask -> 200 request_id=ec3466cd99374bc79d61734511c40012 {"answer": "I don't have enough information about that.", "best_distance": 0.8365, "corpus": "city_guides", "question": "How do I write a for loop in Rust?", "refused": true, "sources": [], "threshold": 0.65}
+POST /ask -> 400 request_id=feb2cc5c546b455d96e6d446069e95bb {"error": "Send JSON with a question in it, like {\"question\": \"When should I visit Kestrelford?\"}"}
+CLI exit code: 0
+(best distance 0.325, cutoff 0.65)
+
+According to `guide_kestrelford.md`, late spring and early autumn are the best times to go to Kestrelford.
+
+Sources retrieved: guide_kestrelford.md, guide_marchwood.md, guide_seasons.md, guide_walking.md
+
+0 model calls this session, 1 served from cache
+Verified four matching request records and the original CLI answer path
+Development checks passed. No capstone acceptance verdicts were assigned.
+
+Fresh environment, rebuilt index, local HTTP service, and CLI checks passed.

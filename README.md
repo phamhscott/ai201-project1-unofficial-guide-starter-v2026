@@ -694,3 +694,130 @@ will hold the structured records, without a separate logging service. This
 leaves the rest of the unit for writing and committing five capstone criteria
 before formal evaluation, running three trials per criterion before and after
 one improvement, and documenting the results and remaining limitations.
+
+## Build Extension
+
+The operational layer is implemented around the existing local HTTP service.
+`serve.py::start_request_record` starts a monotonic timer and assigns a request
+identifier. `serve.py::finish_request_record` records the JSON input, response,
+status, elapsed time, model, corpus, and API usage.
+`request_log.py::append_record` appends one JSONL entry under a thread lock.
+The response's `X-Request-ID` header links it to its record.
+
+`generate.py::measure_usage` keeps accounting separate for each request using
+a context variable. The original session counters remain available to the CLI.
+Cache hits and refusals have zero new generation tokens. Failed API attempts
+or missing usage metadata make the request's token total unknown, represented
+by `null`. The recorded total comes from the API rather than an estimated price.
+
+The run path and environment are documented in
+[`RUNNING.md`](RUNNING.md#unit-9-capstone-local-run-path), with exact dependency
+versions in [`requirements-lock.txt`](requirements-lock.txt).
+
+## Development Check
+
+These are Milestone 2 development checks, not the capstone acceptance trials.
+The capstone's five criteria still need to be written and committed before
+formal evaluation. No acceptance verdicts have been assigned.
+
+**Claim:** A real local session returned a sourced answer, reused it from the
+cache, refused an unrelated question, rejected blank input, and retained the
+original CLI answer path.
+
+**Location:** `tools/dev_session.py::main` starts `serve.py`, exercises
+`serve.py::ask` and `app.py::ask_pipeline`, and runs the original CLI command.
+The complete text transcript is in
+[`results/capstone_milestone2_development.txt`](results/capstone_milestone2_development.txt).
+
+**Output:**
+
+```text
+GET /health -> 200 {"corpus": "city_guides", "detail": "ready", "index_ready": true, "status": "ok"}
+```
+
+```text
+CLI exit code: 0
+(best distance 0.325, cutoff 0.65)
+
+According to `guide_kestrelford.md`, late spring and early autumn are the best times to go to Kestrelford.
+
+Sources retrieved: guide_kestrelford.md, guide_marchwood.md, guide_seasons.md, guide_walking.md
+
+0 model calls this session, 1 served from cache
+Verified four matching request records and the original CLI answer path
+Development checks passed. No capstone acceptance verdicts were assigned.
+```
+
+The actual request records are preserved in
+[`results/capstone_milestone2_development.jsonl`](results/capstone_milestone2_development.jsonl).
+The following entry was written by `serve.py::finish_request_record` through
+`request_log.py::append_record`:
+
+```jsonl
+{"timestamp": "2026-11-09T21:11:29.493109+00:00", "request_id": "7aade8b168c64eb5b0486ede9c5107d4", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": true, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 757, "output_tokens": 27, "total_tokens": 784}, "input": {"question": "When should I visit Kestrelford, according to the city guide?"}, "output": {"answer": "According to `guide_kestrelford.md`, late spring and early autumn are the best times to go to Kestrelford.", "best_distance": 0.3254, "corpus": "city_guides", "question": "When should I visit Kestrelford, according to the city guide?", "refused": false, "sources": ["guide_kestrelford.md", "guide_marchwood.md", "guide_seasons.md", "guide_walking.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 2464.52}
+```
+
+The uncached answer recorded 757 input tokens, 27 output tokens, and 784 total
+tokens. Its repeated request recorded one cache hit and zero new API tokens.
+The first record is a failed development attempt caused by sandbox access to
+the embedding-model cache. The subsequent session passed with that access.
+
+**Claim:** The documented setup worked from a clean local checkout with a new
+virtual environment and a rebuilt index.
+
+**Location:** The commands in `RUNNING.md` use `app.py::cmd_index` for indexing
+and `serve.py::main` to start the service. The check used Windows and Python
+3.12.10 at commit `1f16ce7`, with the pinned dependencies installed into a fresh
+environment. It provisioned the ignored `.env` locally and reused the existing
+per-user ONNX model cache. It did not reuse the original Chroma index or
+response cache.
+
+**Output:**
+
+```text
+No broken requirements found.
+```
+
+```text
+Ran 10 tests in 0.057s
+
+OK
+```
+
+```text
+Corpus: city_guides
+  loaded   14 documents, 28,958 characters, ~2,068 characters per document
+  chunked  98 chunks, 310 characters on average (shortest 23, longest 762), produced by chunker.py::split_documents
+  embedding 98 chunks (first run downloads the model)...
+  stored   98 chunks in 2.0s
+
+Ready. Try: python app.py ask "your question here"
+```
+
+```text
+Fresh environment, rebuilt index, local HTTP service, and CLI checks passed.
+```
+
+The complete
+[`clean-checkout transcript`](results/capstone_milestone2_clean_checkout.txt)
+also preserves the initial setup-command error and its correction. The CLI's
+global `--corpus` option must appear before `index`. Its four real request
+records are in
+[`results/capstone_milestone2_clean_checkout.jsonl`](results/capstone_milestone2_clean_checkout.jsonl).
+
+## How I Used AI - Unit 9 Build
+
+**Tool:** Codex.
+
+**Scope planning:** I asked for a simple local capstone extension of Project 1.
+Codex inspected the existing server and suggested Shape A with Path B. I agreed
+to that direction and asked it to write Milestone 1, with no semicolons.
+
+**Implementation:** I asked Codex to build the scoped extension for Milestone 2
+and commit as it went. It added logging, timing, and request-scoped accounting,
+then ran synthetic development tests and real HTTP and CLI checks. The clean
+checkout exposed an incorrect setup command, which it corrected and reran.
+
+**Student review and reflection:** Scott still needs to review the code and
+describe what he changed or learned. This build record does not supply a
+personal reflection on his behalf.
