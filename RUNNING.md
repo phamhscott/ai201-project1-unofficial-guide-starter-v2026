@@ -284,7 +284,7 @@ allowed version ranges. The lock file targets this Windows and Python setup.
 Build the index once before starting the server:
 
 ```powershell
-.\.venv\Scripts\python.exe app.py index --corpus city_guides
+.\.venv\Scripts\python.exe app.py --corpus city_guides index
 ```
 
 This reads the committed corpus and builds the ignored `chroma_db/` directory.
