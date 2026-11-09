@@ -659,3 +659,38 @@ to rank the same candidate set as BM25, corrected the fusion ordering, and used
 clearer names such as `candidate_index` to distinguish a candidate's original
 index from its calculated rank. I questioned some specific coding decisions like the `enumerate` mapping it suggested, then verified both filtered and
 unfiltered retrieval before running the formal after-test.
+
+---
+
+# Unit 9 Capstone
+
+## The Shape
+
+I am extending The Unofficial Guide, my Project 1 city-guides RAG system,
+using **Shape A: Deploy and instrument**. The extension will add an operational
+layer around the existing HTTP service in `serve.py`, which already calls the
+same retrieval, relevance gate, and answer pipeline as the command line. I will
+use **Path B: local with logs**, with one documented startup command in
+`RUNNING.md` and setup instructions checked from a clean checkout. Each question
+request will write a structured log record with a timestamp, the input, the
+answer or error, and the elapsed time. I will also record actual token usage
+per request so I can measure the cost of running the system. The service,
+embedding model, and vector database will run locally, while generated answers
+will continue to use the Gemini API.
+
+## Out of Scope
+
+- Changing the corpus, chunking strategy, or existing hybrid retrieval.
+- Building a new interface or adding new question-answering capabilities.
+- Publishing to a cloud host or adding a hosted monitoring dashboard.
+
+## Scope Check
+
+I am keeping the implementation within a roughly 90-minute build budget by
+reusing `serve.py`, `app.py::ask_pipeline`, and the token counters in
+`generate.py`. The planned changes are request logging, timing, per-request
+token accounting, and reproducible local setup documentation. A JSONL file
+will hold the structured records, without a separate logging service. This
+leaves the rest of the unit for writing and committing five capstone criteria
+before formal evaluation, running three trials per criterion before and after
+one improvement, and documenting the results and remaining limitations.
