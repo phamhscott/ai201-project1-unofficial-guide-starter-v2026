@@ -18,6 +18,7 @@ import subprocess
 import sys
 import time
 import os
+import traceback
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -209,7 +210,11 @@ class Trial:
     @contextmanager
     def server(self, phase, cache=False):
         with socket.socket() as probe:
-            probe.bind(("127.0.0.1", 5000))
+            # A plain bind can reject Windows TIME_WAIT sockets after shutdown.
+            # Connecting checks for a listener without reserving the port.
+            probe.settimeout(0.2)
+            if probe.connect_ex(("127.0.0.1", 5000)) == 0:
+                raise RuntimeError("Port 5000 already has a listener")
         log = self.directory / (phase + "_requests.jsonl")
         self.phase_logs.append(log)
         environment = os.environ.copy()
@@ -230,6 +235,8 @@ class Trial:
             try:
                 deadline = time.monotonic() + 45
                 while True:
+                    if process.poll() is not None:
+                        raise RuntimeError("Server exited before becoming ready")
                     try:
                         with urlopen("http://127.0.0.1:5000/health", timeout=5) as response:
                             health = json.loads(response.read())
@@ -379,6 +386,9 @@ def main():
             trial.execute(questions)
         except Exception as error:
             trial.emit("INFRASTRUCTURE FAILURE " + type(error).__name__)
+            write_json(trial.directory / "infrastructure_error.json", {
+                "type": type(error).__name__, "traceback": traceback.format_exc(),
+            })
         result = trial.grade()
         trials.append(result)
         write_json(output / "progress.json", trials)
