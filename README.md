@@ -897,8 +897,9 @@ Elapsed time is not CPU time. Tokens are the cost unit here, rather than a
 dollar charge inferred from a pricing page. This sample measures one fixed
 question and does not establish the average cost of every city-guide question.
 It is an operational measurement for Milestone 3, with no capstone acceptance
-verdicts assigned. The capstone criteria must still be committed before the
-formal before-and-after evaluation.
+verdicts assigned. The formal before-and-after evaluation will use the
+[Unit 9 criteria](criteria.md#unit-9-capstone-acceptance-criteria) after their
+commit checkpoint.
 
 ## How I Used AI - Unit 9 Build
 
@@ -918,6 +919,14 @@ checkout, captured two deliberate failure probes and ten uncached API requests,
 and calculated the mean token usage from the real structured records. It pasted
 the records and method into the README. These measurements are operational
 evidence and were not scored against capstone acceptance criteria.
+
+**Criteria:** I gave Codex my priorities of a working local endpoint, expected
+error responses, and measurable logs, and agreed to the earlier timing and
+accounting focuses. I authorized help drafting the five criteria and chose
+the larger of 50 milliseconds or 10 percent for timing accuracy. Codex wrote
+the measurement procedures, technical rationales, and self-check, while
+preserving the original Project 1 criteria and the chronology of earlier
+operational measurements. These criteria were developed with AI assistance.
 
 **Student review and reflection:** Scott still needs to review the code and
 describe what he changed or learned. This build record does not supply a

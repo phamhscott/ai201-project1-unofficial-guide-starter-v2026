@@ -1,3 +1,217 @@
+# Unit 9 capstone acceptance criteria
+
+**Status:** Finalized for the formal before-and-after evaluation. Scott selected
+the larger of 50 milliseconds or 10 percent for the timing-accuracy tolerance.
+
+These five criteria cover the Shape A extension, using Path B with the local
+HTTP service. They follow Scott's priorities of a working endpoint, expected
+error responses, and usable logs, together with the previously agreed timing
+and token-accounting focuses. Codex helped turn those priorities into measurable
+wording and technical rationales. They are not claimed as unaided work.
+
+**Chronology:** The Project 1 results, development checks, and Milestone 3
+operational logs and cost measurements already exist. These criteria are being
+written after those observations and before the capstone's formal acceptance
+trials. The earlier records remain intact and will not be counted as formal
+trials against these targets.
+
+## Trial protocol
+
+Run three independent trials before the improvement and three afterward,
+using the same requests, targets, and scoring rules. Each trial starts a fresh
+server process from a checkout set up through `RUNNING.md`, with a rebuilt
+city-guides index. Use a separate JSONL log for each trial. Preserve all
+responses and request identifiers, including failures. Do not replace a failed
+trial with a successful rerun.
+
+For criteria 1 and 4, disable the answer cache with `AI201_CACHE=0`. Use these
+five fixed questions, taken from the original Project 1 question set:
+
+1. What are the four most difficult towns to get around with limited mobility?
+2. What is the train frequency and duration to get to Brightwater?
+3. What town has fresh seafood?
+4. What can you see at Thornby Wells?
+5. When is the recommended time to go visit Kestrelford?
+
+For criterion 2, trigger the six specified failure cases in isolated server
+processes where necessary. The missing-index case must use a separate checkout
+or empty temporary index directory. The API failure is a deliberately injected
+exception at the model-call boundary, not a claim of an actual provider outage.
+Do not delete the working index or change the submitted corpus to create a
+failure.
+
+For criterion 5, use a separate process with caching enabled and an initially
+empty temporary response-cache directory. Controlled model responses used to
+test missing metadata or API errors must be labeled as synthetic fault probes.
+They do not count as real generated answers or measured API spending.
+
+For every criterion, the target must hold in all three trials for the final
+verdict to be `MET`. Otherwise the verdict is `MISSED`. A request that never
+returns a response cannot be scored as meeting its response, logging, or timing
+target. Use a 120-second client timeout to stop such a request and preserve it
+as a failed observation, rather than silently dropping it.
+
+## 1. The local endpoint returns the expected answer response
+
+**Target:** In each trial, all five fixed in-scope questions sent to
+`POST http://127.0.0.1:5000/ask` after the documented startup return HTTP 200
+with the answer-response contract defined below.
+
+**Measurement:** Start with the command in `RUNNING.md` and confirm
+`GET /health` reports `index_ready: true`. Send each question as JSON with a
+string `question` field. The response contract requires the same `question`,
+a nonempty string `answer`, `refused: false`, a nonempty list of source
+filenames in `sources`, numeric `best_distance` and `threshold`, and
+`corpus: "city_guides"`. An unreachable service, unsuccessful HTTP status,
+unparseable JSON, or a missing or wrongly typed field is a failed response.
+This criterion measures the HTTP answer contract, not factual answer accuracy.
+
+**Why this target:** A local service must make the existing guide available
+through its documented endpoint. The five existing questions exercise both
+town-specific and cross-town requests without introducing a new corpus or
+retriever. All five must work because a missing response or broken schema
+prevents a caller from using the service even if retrieval itself is correct.
+A stricter claim about every possible question would exceed this fixed sample.
+
+## 2. Failed requests return the expected error response
+
+**Target:** In each trial, all six specified failure cases return their expected
+HTTP status and a JSON object with a nonempty string `error` field instead of
+an answer response.
+
+**Measurement:** Send these cases with `Content-Type: application/json`:
+
+| Case | Request or controlled condition | Expected status |
+|---|---|---:|
+| Missing question | `{}` | 400 |
+| Blank question | `{"question":" "}` | 400 |
+| Wrong question type | `{"question":42}` | 400 |
+| Malformed JSON | Raw body `{broken` | 400 |
+| Missing index | A fixed in-scope question with no city-guides index | 500 |
+| Failed model call | A fixed in-scope question with an injected `RuntimeError` from the model call | 500 |
+
+A case fails if its status differs, its JSON cannot be parsed, its `error`
+field is absent or empty, or its body contains an `answer` field. Preserve the
+injection setup so another person can repeat the two controlled server faults.
+
+**Why this target:** Clients need to distinguish a request they should correct
+from a server dependency failure. Four cases cover the accepted request shape,
+while the other two cover the local index and the external generator. All six
+must follow the error contract because accepting a silent failure would leave
+the caller without a usable outcome. This does not claim that the service
+automatically repairs an index or recovers an unavailable API.
+
+## 3. Every question request has one matching structured log record
+
+**Target:** In each trial, every one of the eleven requests from criteria 1
+and 2 produces exactly one complete, matching JSONL record, including failures.
+
+**Measurement:** Match records to responses by the `X-Request-ID` header and
+the record's `request_id`. Identifiers must be nonempty and unique across
+requests. Each record must have a parseable UTC `timestamp`, `input`, `output`,
+`status_code`, finite nonnegative `duration_ms`, `method`, `path`, `corpus`,
+`model`, `cache_enabled`, and an object `usage`. Check `method: "POST"`,
+`path: "/ask"`, and `corpus: "city_guides"`. For valid JSON bodies, `input`
+must equal the submitted JSON. For the malformed body, require `input: null`
+under the documented parsing policy. `output` must equal the returned JSON
+and `status_code` must equal the HTTP status. Combine records from isolated
+fault processes for the trial, preserving their original lines and identifiers.
+Do not count health checks as question requests.
+
+**Why this target:** A missing or duplicate record makes it impossible to
+reconcile a request with the service's behavior. Requiring all eleven prevents
+successful answers from hiding unlogged failures. Exact input, output, and
+identifier matching gives a concrete diagnostic record rather than a count of
+lines that might belong to different requests. This criterion checks record
+coverage and identity. Timing accuracy and usage values are assessed separately.
+
+## 4. Logged duration agrees with independently measured elapsed time
+
+**Target:** In each trial, the logged
+`duration_ms` for all five in-scope requests differs from the local client's
+elapsed time by no more than the larger of 50 milliseconds or 10 percent of
+that client's elapsed time.
+
+**Measurement:** At the HTTP client, use `time.perf_counter()` immediately
+before sending each request and immediately after reading its entire response
+body. Convert the difference to milliseconds and compare it with the matching
+record's `duration_ms`. The condition is
+`abs(logged_ms - client_ms) <= max(50, 0.10 * client_ms)`.
+Include the first request after server startup so model-loading time is not
+removed from the sample. Do not infer duration from timestamps or compare
+the log field with another copy of the same server timer.
+
+**Why this target:** The timing field needs to support diagnosis of
+slow requests. A missing wait or model-loading stage would make that diagnosis
+misleading. Exact equality would reject normal socket, transfer, scheduling,
+and log-writing overhead measured by the client. A 50-millisecond floor allows
+small local overhead, while the 10-percent allowance scales to longer API calls
+without permitting an arbitrarily large discrepancy. This is a timing-accuracy
+target, not a promise of a maximum answer wait.
+
+## 5. Usage records attribute API cost to the correct request
+
+**Target:** In each trial, all six requests in the accounting sequence below
+record the expected per-request model calls, cache hits, and token usage.
+
+**Measurement:** Use `When should I visit Kestrelford?` for the two repeated
+requests. For real API usage, preserve an independent capture of the returned
+SDK response's `usage_metadata` and actual call count through a forwarding spy
+at the client boundary. Compare the log with that capture rather than deriving
+the expected values from the log itself. Run the sequence with an empty
+temporary response cache and preserve the request identifiers.
+
+| Request | Expected usage record |
+|---|---|
+| First supported question | One real model call, zero cache hits, and token counts matching the captured API metadata |
+| Exact repeat of that question | Zero model calls, one cache hit, and zero new API tokens |
+| `How do I write a for loop in Rust?` | Zero model calls, zero cache hits, and zero API tokens |
+| Blank question | Zero model calls, zero cache hits, and zero API tokens |
+| Supported question with a synthetic response lacking usage metadata | One model call, zero cache hits, `usage_complete: false`, and all three token fields `null` |
+| Supported question with an injected model-call exception | One model call, zero cache hits, `usage_complete: false`, and all three token fields `null` |
+
+Use `When should someone visit Kestrelford?` for the missing-metadata probe and
+`What seasons does the guide recommend for visiting Kestrelford?` for the
+injected-exception probe, so the earlier cached answer cannot bypass either
+injected call. When a real response has complete
+metadata, require `usage_complete: true` and exact agreement with its prompt,
+candidate-output, and total token counts. If that real response lacks complete
+metadata, require the documented unknown representation instead. Requests
+making no model call must have `usage_complete: true` and zero token fields.
+If a real call retries, preserve every attempt and its metadata. Unreported
+usage from any attempt makes the aggregate token fields unknown, and the
+first-row one-call target is missed rather than reclassified as a clean call.
+
+**Why this target:** Session totals cannot show what a particular request
+cost, and a cached answer must not inherit the cost of the request that created
+it. The six cases distinguish an actual call, cache reuse, a gate refusal,
+invalid input, missing metadata, and a failed call. Exact attribution is
+required in every case because even one inherited token total or unknown cost
+reported as zero would distort a small run's average. This checks accounting
+correctness without choosing a spending limit from the observed cost sample.
+
+## Criteria self-check
+
+The written self-check below evaluates the criteria's measurability, not system
+results. No acceptance verdicts have been assigned.
+
+| Criterion | Observable target | Repeatable procedure | One behavior | System-specific reason | Extension coverage |
+|---|---|---|---|---|---|
+| 1 | Five valid answer responses per trial | Fixed questions and response contract | HTTP answer contract | Every caller needs a usable response | Local run path |
+| 2 | Six expected error responses per trial | Fixed invalid inputs and injected faults | HTTP error contract | Failed requests need explicit outcomes | Failure handling at the endpoint |
+| 3 | Eleven complete matching records per trial | Header and response comparisons | Request-to-record correspondence | Missing failures cannot be diagnosed | Structured logging |
+| 4 | Five timing comparisons per trial | Independent monotonic client timer | Timing accuracy | Misreported waits mislead diagnosis | Timing instrumentation |
+| 5 | Six correctly attributed usage records per trial | API metadata capture and fixed accounting sequence | Per-request cost attribution | Cache reuse and unknown usage must be distinct | Cost instrumentation |
+
+All five focus on the extension and have explicit measurement instructions.
+Criterion 2 covers bad paths, while criteria 3 and 5 require failure records
+and unknown-cost handling. Losing even one request record or attributing cost
+to the wrong request would defeat the stated purpose of this extension.
+Scott selected the 50-millisecond or 10-percent timing tolerance because
+accurate timing is a priority for this extension.
+
+---
+
 # Acceptance criteria — The Unofficial Guide
 
 Five criteria that say what "working" means for this system, written in week 1
