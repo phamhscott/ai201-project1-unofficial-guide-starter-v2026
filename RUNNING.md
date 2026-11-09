@@ -2,6 +2,10 @@
 
 Everything about how the starter works and how to use it.
 
+For the Unit 9 submission, start with
+[Unit 9 capstone local run path](#unit-9-capstone-local-run-path). That section
+includes the complete setup, startup command, and instrumentation instructions.
+
 ---
 
 ## Before your first class
@@ -267,6 +271,13 @@ Embeddings and the Chroma index run locally.
 
 ### First-time setup from a clean checkout
 
+Clone the repository, then enter its directory:
+
+```powershell
+git clone https://github.com/phamhscott/ai201-project1-unofficial-guide-starter-v2026.git
+Set-Location ai201-project1-unofficial-guide-starter-v2026
+```
+
 Run these commands in PowerShell from the repository root. The virtual
 environment paths avoid depending on shell activation.
 
@@ -387,3 +398,31 @@ It uses the real embedding model and configured Gemini API. With caching
 enabled, a repeat session may reuse the first session's answer. It writes a
 text transcript beside the JSONL log, plus the server's console output.
 These are development checks, separate from the later three-trial evaluation.
+
+### Measure the cost of ten generated answers
+
+In the server terminal, disable the answer cache before startup:
+
+```powershell
+$env:AI201_CACHE = "0"
+.\.venv\Scripts\python.exe serve.py
+```
+
+In a second terminal at the repository root, run:
+
+```powershell
+.\.venv\Scripts\python.exe tools\measure_cost.py
+```
+
+The measurement client sends `When should I visit Kestrelford?` ten times in
+sequence. It matches each response's request identifier to the server's JSONL
+record, reads the actual API usage fields, and saves the sample and arithmetic
+means in `results/capstone_milestone3_cost.json`. No request is counted as a
+generated-answer cost sample unless it has a successful answer, caching off,
+one API call, and complete usage metadata. If a measurement fails, the partial
+sample is preserved with `measurement_complete: false` and no average.
+Preserve that failed sample before rerunning instead of silently replacing it.
+
+This measures tokens consumed for this fixed question, rather than dollar
+charges or an average across all city-guide questions. It is the Milestone 3
+operational cost measurement, separate from the capstone acceptance trials.
