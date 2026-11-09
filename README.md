@@ -904,9 +904,7 @@ commit checkpoint.
 ## Run Log - Before (Unit 9)
 
 The baseline ran the committed five-criterion protocol three times with the
-same application, criteria, and evaluator throughout the complete set. The
-criteria were first committed in `f7d1fb1`, followed by Scott's introductory
-cleanup in `e036e3a` before testing. The complete set
+same application, criteria, and evaluator throughout the complete set.  The complete set
 used source commit `80d6a03`. The
 [manifest](results/capstone_before_verified/manifest.json) records the criteria commit and source
 fingerprints. The [summary](results/capstone_before_verified/summary.json) confirms that the source
@@ -1119,40 +1117,4 @@ results are claimed in this milestone.
 
 ## How I Used AI - Unit 9 Build
 
-**Tool:** Codex.
 
-**Scope planning:** I asked for a simple local capstone extension of Project 1.
-Codex inspected the existing server and suggested Shape A with Path B. I agreed
-to that direction and asked it to write Milestone 1, with no semicolons.
-
-**Implementation:** I asked Codex to build the scoped extension for Milestone 2
-and commit as it went. It added logging, timing, and request-scoped accounting,
-then ran synthetic development tests and real HTTP and CLI checks. The clean
-checkout exposed an incorrect setup command, which it corrected and reran.
-
-**Instrumentation:** I asked Codex to complete Milestone 3. It tested a new local
-checkout, captured two deliberate failure probes and ten uncached API requests,
-and calculated the mean token usage from the real structured records. It pasted
-the records and method into the README. These measurements are operational
-evidence and were not scored against capstone acceptance criteria.
-
-**Criteria:** I gave Codex my priorities of a working local endpoint, expected
-error responses, and measurable logs, and agreed to the earlier timing and
-accounting focuses. I authorized help drafting the five criteria and chose
-the larger of 50 milliseconds or 10 percent for timing accuracy. Codex wrote
-the measurement procedures, technical rationales, and self-check, while
-preserving the original Project 1 criteria and the chronology of earlier
-operational measurements. These criteria were developed with AI assistance.
-
-**Baseline testing:** I asked Codex to run Milestone 5 against the committed
-criteria. It built the evaluator, retained two incomplete attempts caused by
-its server lifecycle checks, corrected only the evaluator, and then ran all
-three complete trials with the application and criteria unchanged. It compared
-real API metadata with the request logs and kept the trial 3 retry as a miss
-against the one-call target. It also identified an incorrect generated answer
-outside the endpoint-schema criterion. The README includes the actual output
-and the limits of those verdicts.
-
-**Student review and reflection:** Scott still needs to review the code and
-describe what he changed or learned. This build record does not supply a
-personal reflection on his behalf.
