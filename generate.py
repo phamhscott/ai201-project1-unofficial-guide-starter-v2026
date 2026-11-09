@@ -32,6 +32,9 @@ import json
 import os
 import sys
 import time
+from contextlib import contextmanager
+from contextvars import ContextVar
+from dataclasses import dataclass
 
 import config
 
@@ -42,6 +45,43 @@ _session_output_tokens = 0
 _cache_hits = 0
 _client = None
 _budget_warned = False
+
+
+@dataclass
+class RequestUsage:
+    """API usage for one request, separate from the existing session totals."""
+
+    model_calls: int = 0
+    cache_hits: int = 0
+    prompt_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
+    responses_with_usage: int = 0
+
+    def as_dict(self) -> dict:
+        complete = self.model_calls == self.responses_with_usage
+        return {
+            "model_calls": self.model_calls,
+            "cache_hits": self.cache_hits,
+            "usage_complete": complete,
+            "prompt_tokens": self.prompt_tokens if complete else None,
+            "output_tokens": self.output_tokens if complete else None,
+            "total_tokens": self.total_tokens if complete else None,
+        }
+
+
+_request_usage: ContextVar[RequestUsage | None] = ContextVar("request_usage", default=None)
+
+
+@contextmanager
+def measure_usage():
+    """Attribute calls to this context without mixing simultaneous requests."""
+    usage = RequestUsage()
+    token = _request_usage.set(usage)
+    try:
+        yield usage
+    finally:
+        _request_usage.reset(token)
 
 
 class QuotaGuard(Exception):
@@ -141,6 +181,16 @@ def _record_tokens(response) -> None:
             return
         _session_prompt_tokens += int(getattr(meta, "prompt_token_count", 0) or 0)
         _session_output_tokens += int(getattr(meta, "candidates_token_count", 0) or 0)
+        usage = _request_usage.get()
+        if usage is not None:
+            counts = [getattr(meta, field, None) for field in (
+                "prompt_token_count", "candidates_token_count", "total_token_count"
+            )]
+            if all(isinstance(count, int) and count >= 0 for count in counts):
+                usage.prompt_tokens += counts[0]
+                usage.output_tokens += counts[1]
+                usage.total_tokens += counts[2]
+                usage.responses_with_usage += 1
     except Exception:
         pass  # accounting never breaks the thing it is accounting for
 
@@ -221,6 +271,9 @@ def generate(prompt: str, system: str | None = None, cache: bool = True) -> str:
         hit = _cache_read(key)
         if hit is not None:
             _cache_hits += 1
+            usage = _request_usage.get()
+            if usage is not None:
+                usage.cache_hits += 1
             return hit
 
     _check_budget()
@@ -232,6 +285,9 @@ def generate(prompt: str, system: str | None = None, cache: bool = True) -> str:
             client = _get_client()
             _call_times.append(time.monotonic())
             _session_calls += 1
+            usage = _request_usage.get()
+            if usage is not None:
+                usage.model_calls += 1
 
             kwargs = {"model": config.MODEL, "contents": prompt}
             if system:

@@ -33,6 +33,7 @@ from uuid import uuid4
 from flask import Flask, g, jsonify, request
 
 import config
+from generate import RequestUsage, measure_usage
 from request_log import append_record
 
 app = Flask(__name__)
@@ -45,6 +46,7 @@ def start_request_record():
         g.started = time.perf_counter()
         g.timestamp = datetime.now(timezone.utc).isoformat()
         g.request_id = uuid4().hex
+        g.usage = RequestUsage()
 
 
 @app.after_request
@@ -59,6 +61,9 @@ def finish_request_record(response):
                 "method": request.method,
                 "path": request.path,
                 "corpus": config.CORPUS,
+                "model": config.MODEL,
+                "cache_enabled": config.CACHE_ENABLED,
+                "usage": g.usage.as_dict(),
                 "input": request.get_json(silent=True),
                 "output": response.get_json(silent=True),
                 "status_code": response.status_code,
@@ -121,7 +126,9 @@ def ask():
         )
 
     try:
-        outcome = ask_pipeline(question, corpus=config.CORPUS)
+        with measure_usage() as usage:
+            g.usage = usage
+            outcome = ask_pipeline(question, corpus=config.CORPUS)
     except Exception as exc:  # noqa: BLE001 — a reader gets this, not a traceback
         # Exception text can contain service URLs and credentials.
         return jsonify({"error": f"{type(exc).__name__}: unable to answer question"}), 500

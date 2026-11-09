@@ -58,6 +58,7 @@ class RequestLoggingTests(unittest.TestCase):
         records = self.records()
         self.assertEqual(len(records), len(payloads) + 1)
         self.assertTrue(all(record["status_code"] == 400 for record in records))
+        self.assertTrue(all(record["usage"]["model_calls"] == 0 for record in records))
         self.assertEqual(len({record["request_id"] for record in records}), len(records))
 
     def test_pipeline_error_is_logged_without_exception_details(self):
@@ -79,6 +80,33 @@ class RequestLoggingTests(unittest.TestCase):
             response = self.client.post("/ask", json={"question": "Outside the corpus"})
         self.assertEqual(response.status_code, 200)
         self.assertTrue(self.records()[0]["output"]["refused"])
+        self.assertEqual(self.records()[0]["usage"]["total_tokens"], 0)
+
+    def test_api_usage_reaches_the_request_record(self):
+        from types import SimpleNamespace
+        import generate
+
+        model_response = SimpleNamespace(
+            text="A stubbed answer",
+            usage_metadata=SimpleNamespace(
+                prompt_token_count=12, candidates_token_count=4, total_token_count=16
+            ),
+        )
+        client = SimpleNamespace(models=SimpleNamespace(generate_content=lambda **kwargs: model_response))
+
+        def pipeline(*args, **kwargs):
+            return {
+                "answer": generate.generate("stubbed prompt", cache=False),
+                "refused": False, "sources": ["guide_kestrelford.md"],
+                "best_distance": 0.3, "threshold": 0.65,
+            }
+
+        with patch("app.ask_pipeline", side_effect=pipeline):
+            with patch.object(generate, "_get_client", return_value=client):
+                response = self.client.post("/ask", json={"question": "A question"})
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(self.records()[0]["usage"]["total_tokens"], 16)
+        self.assertEqual(self.records()[0]["usage"]["model_calls"], 1)
 
 
 if __name__ == "__main__":
