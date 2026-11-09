@@ -13,7 +13,6 @@ import json
 import math
 from pathlib import Path
 import re
-import socket
 import subprocess
 import sys
 import time
@@ -209,12 +208,6 @@ class Trial:
 
     @contextmanager
     def server(self, phase, cache=False):
-        with socket.socket() as probe:
-            # A plain bind can reject Windows TIME_WAIT sockets after shutdown.
-            # Connecting checks for a listener without reserving the port.
-            probe.settimeout(0.2)
-            if probe.connect_ex(("127.0.0.1", 5000)) == 0:
-                raise RuntimeError("Port 5000 already has a listener")
         log = self.directory / (phase + "_requests.jsonl")
         self.phase_logs.append(log)
         environment = os.environ.copy()
@@ -230,13 +223,21 @@ class Trial:
                        "--index", str(index), "--cache", str(self.workspace / (phase + "_cache")),
                        "--capture", str(self.directory / (phase + "_api_capture.jsonl"))]
         self.emit("> " + " ".join(command))
-        with (self.directory / (phase + "_console.txt")).open("w", encoding="utf-8") as console:
+        console_path = self.directory / (phase + "_console.txt")
+        with console_path.open("w", encoding="utf-8") as console:
             process = subprocess.Popen(command, cwd=self.checkout, env=environment, stdout=console, stderr=console)
             try:
                 deadline = time.monotonic() + 45
                 while True:
                     if process.poll() is not None:
                         raise RuntimeError("Server exited before becoming ready")
+                    # Wait for this process to bind, rather than probing the
+                    # port before startup or mistaking another listener for it.
+                    if "Running on http://127.0.0.1:5000" not in console_path.read_text(encoding="utf-8"):
+                        if time.monotonic() >= deadline:
+                            raise RuntimeError("Server did not announce a successful bind")
+                        time.sleep(0.2)
+                        continue
                     try:
                         with urlopen("http://127.0.0.1:5000/health", timeout=5) as response:
                             health = json.loads(response.read())
@@ -250,7 +251,14 @@ class Trial:
                     raise RuntimeError("Unexpected index readiness for trial phase")
                 yield
             finally:
-                process.terminate()
+                if process.poll() is None:
+                    if os.name == "nt":
+                        # The Windows venv redirector can have a child Python
+                        # process. Stop only this runner's server process tree.
+                        subprocess.run(["taskkill", "/PID", str(process.pid), "/T", "/F"],
+                                       capture_output=True, timeout=10)
+                    else:
+                        process.terminate()
                 process.wait(timeout=10)
 
     def post(self, case, phase, payload=None, expected_status=200, raw=None):
