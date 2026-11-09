@@ -35,10 +35,12 @@ import time
 from contextlib import contextmanager
 from contextvars import ContextVar
 from dataclasses import dataclass
+from threading import Lock
 
 import config
 
 _call_times: list[float] = []
+_pacing_lock = Lock()
 _session_calls = 0
 _session_prompt_tokens = 0
 _session_output_tokens = 0
@@ -126,23 +128,27 @@ def clear_cache() -> int:
 
 
 def _wait_for_slot() -> None:
-    """Sleep, if we've used up this minute's allowance."""
-    now = time.monotonic()
-    _call_times[:] = [t for t in _call_times if now - t < 60.0]
-
-    if len(_call_times) < config.REQUESTS_PER_MINUTE:
-        return
-
-    sleep_for = 60.0 - (now - _call_times[0]) + 0.1
-    if sleep_for > 0:
-        print(
-            f"  [rate limit] {config.REQUESTS_PER_MINUTE} requests used this "
-            f"minute. Waiting {sleep_for:.0f}s. This is normal.",
-            file=sys.stderr,
-            flush=True,
+    """Reserve spaced attempt slots instead of allowing a full-minute burst."""
+    with _pacing_lock:
+        now = time.monotonic()
+        _call_times[:] = [t for t in _call_times if now - t < 60.0]
+        interval = 60.0 / config.REQUESTS_PER_MINUTE
+        # Delay the first attempt too, so a new server does not start a burst.
+        spacing_wait = max(0.0, _call_times[-1] + interval - now) if _call_times else interval
+        window_wait = (
+            max(0.0, 60.0 - (now - _call_times[0]) + 0.1)
+            if len(_call_times) >= config.REQUESTS_PER_MINUTE else 0.0
         )
-        time.sleep(sleep_for)
+        sleep_for = max(spacing_wait, window_wait)
+        if sleep_for > 0:
+            print(
+                f"  [pacing] Waiting {sleep_for:.2f}s for a spaced model-call slot.",
+                file=sys.stderr,
+                flush=True,
+            )
+            time.sleep(sleep_for)
         _call_times[:] = [t for t in _call_times if time.monotonic() - t < 60.0]
+        _call_times.append(time.monotonic())
 
 
 def _check_budget() -> None:
@@ -283,7 +289,6 @@ def generate(prompt: str, system: str | None = None, cache: bool = True) -> str:
         _wait_for_slot()
         try:
             client = _get_client()
-            _call_times.append(time.monotonic())
             _session_calls += 1
             usage = _request_usage.get()
             if usage is not None:
