@@ -1,14 +1,5 @@
 # Unit 9 capstone acceptance criteria
 
-**Status:** Finalized for the formal before-and-after evaluation. Scott selected
-the larger of 50 milliseconds or 10 percent for the timing-accuracy tolerance.
-
-These five criteria cover the Shape A extension, using Path B with the local
-HTTP service. They follow Scott's priorities of a working endpoint, expected
-error responses, and usable logs, together with the previously agreed timing
-and token-accounting focuses. Codex helped turn those priorities into measurable
-wording and technical rationales. They are not claimed as unaided work.
-
 **Chronology:** The Project 1 results, development checks, and Milestone 3
 operational logs and cost measurements already exist. These criteria are being
 written after those observations and before the capstone's formal acceptance
@@ -207,8 +198,6 @@ All five focus on the extension and have explicit measurement instructions.
 Criterion 2 covers bad paths, while criteria 3 and 5 require failure records
 and unknown-cost handling. Losing even one request record or attributing cost
 to the wrong request would defeat the stated purpose of this extension.
-Scott selected the 50-millisecond or 10-percent timing tolerance because
-accurate timing is a priority for this extension.
 
 ---
 
