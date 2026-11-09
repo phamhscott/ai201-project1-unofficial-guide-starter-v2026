@@ -1443,9 +1443,9 @@ focus and attribution weaknesses harder to diagnose.
 
 ## How I Used AI - Unit 9 Build
 
-**1. Implementing the local extension with Codex.** I asked for help extending
+**1. Implementing the local extension with AI.** I asked for help extending
 the existing project after discussing which shape would keep the work simple.
-We chose Shape A with Path B, using a local service with logs. Codex inspected
+We chose Shape A with Path B, using a local service with logs. AI inspected
 the existing files, including `serve.py` and `generate.py`, and built around
 the shared pipeline. It added structured request logs,
 timing, and request-scoped token accounting around that existing code.
@@ -1454,11 +1454,11 @@ I kept the scope on local operations and left retrieval, chunking, and a new
 interface out of scope. I also chose the larger of 50 milliseconds or 10
 percent for timing accuracy when we made the criterion focuses measurable.
 Verification included a clean-checkout setup, real HTTP and CLI requests, and
-comparison of the responses with the saved records, run by Codex. Using the
+comparison of the responses with the saved records, run by AI. Using the
 existing files kept the extension connected to the system I had already built.
 
-**2. Testing the feature and criteria with Codex.** I asked for tests of the
-new feature and three trials against the committed criteria. Codex created
+**2. Testing the feature and criteria with AI.** I asked for tests of the
+new feature and three trials against the committed criteria. AI created
 custom development tests for logging, malformed input, errors, caching,
 missing usage metadata, and concurrent accounting. These unit checks went
 beyond the required acceptance trials and directly tested the extension.
@@ -1466,7 +1466,7 @@ beyond the required acceptance trials and directly tested the extension.
 It also built the criterion runner that produced the run-log measurements,
 using real HTTP requests, independent client timings, and a forwarding spy
 that captured SDK usage metadata. Synthetic failure probes were labeled.
-The runner initially had Windows server-lifecycle problems, which Codex fixed
+The runner initially had Windows server-lifecycle problems, which AI fixed
 while preserving the incomplete attempts. The complete baseline then exposed
 the one-call target miss, and the same evaluator measured all three after
 trials following the pacing change.
