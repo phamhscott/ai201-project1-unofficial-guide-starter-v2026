@@ -5,7 +5,7 @@ The Unofficial Guide — the same pipeline, over HTTP.
     python serve.py                          run it locally on port 5000
     gunicorn serve:app                       run it the way a host runs it
 
-Nothing new happens in this file. It is a wrapper: a request comes in, it
+This is a wrapper: a request comes in, it
 hands the question to `app.py::ask_pipeline` — the exact function the command
 line uses — and hands the answer back as JSON. Retrieval, the relevance gate
 and the grounded prompt all still live where they lived. If you change how
@@ -20,20 +20,52 @@ Why this exists: `app.py` runs once and exits, which is fine on your laptop
 and impossible to deploy. A hosted service has to stay up and wait for
 requests. This is the smallest thing that does that.
 
-⚠️ There is deliberately no logging, no timing and no metrics in this file.
-Week 9 has you build the structured log yourself — the request line, the
-timing field everyone skips, the whole instrument-before-you-deploy exercise.
-Shipping a logger here would hand you the answer to that. Add yours in week 9;
-this file stays the bare shell until then.
+Unit 9 adds request timing and structured records in logs/requests.jsonl.
+The response header X-Request-ID links a question request to its record.
+Health checks stay outside the question log.
 """
 
 import os
+import time
+from datetime import datetime, timezone
+from uuid import uuid4
 
-from flask import Flask, jsonify, request
+from flask import Flask, g, jsonify, request
 
 import config
+from request_log import append_record
 
 app = Flask(__name__)
+
+
+@app.before_request
+def start_request_record():
+    """Time question requests from entry through creation of the response."""
+    if request.endpoint == "ask":
+        g.started = time.perf_counter()
+        g.timestamp = datetime.now(timezone.utc).isoformat()
+        g.request_id = uuid4().hex
+
+
+@app.after_request
+def finish_request_record(response):
+    """Log successful answers, refusals, and errors through the same path."""
+    if hasattr(g, "request_id"):
+        response.headers["X-Request-ID"] = g.request_id
+        append_record(
+            {
+                "timestamp": g.timestamp,
+                "request_id": g.request_id,
+                "method": request.method,
+                "path": request.path,
+                "corpus": config.CORPUS,
+                "input": request.get_json(silent=True),
+                "output": response.get_json(silent=True),
+                "status_code": response.status_code,
+                "duration_ms": round((time.perf_counter() - g.started) * 1000, 3),
+            }
+        )
+    return response
 
 
 @app.get("/health")
@@ -73,15 +105,16 @@ def ask():
     """
     from app import ask_pipeline
 
-    payload = request.get_json(silent=True) or {}
-    question = (payload.get("question") or "").strip()
+    payload = request.get_json(silent=True)
+    value = payload.get("question") if isinstance(payload, dict) else None
+    question = value.strip() if isinstance(value, str) else ""
 
     if not question:
         return (
             jsonify(
                 {
                     "error": "Send JSON with a question in it, like "
-                    '{"question": "is the housing lottery random?"}'
+                    '{"question": "When should I visit Kestrelford?"}'
                 }
             ),
             400,
@@ -90,7 +123,8 @@ def ask():
     try:
         outcome = ask_pipeline(question, corpus=config.CORPUS)
     except Exception as exc:  # noqa: BLE001 — a reader gets this, not a traceback
-        return jsonify({"error": f"{type(exc).__name__}: {exc}"}), 500
+        # Exception text can contain service URLs and credentials.
+        return jsonify({"error": f"{type(exc).__name__}: unable to answer question"}), 500
 
     return jsonify(
         {

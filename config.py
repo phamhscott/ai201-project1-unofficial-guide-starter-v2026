@@ -82,6 +82,7 @@ CACHE_DIR = ROOT / ".cache"
 CORPORA_DIR = ROOT / "corpora"
 CHROMA_DIR = ROOT / "chroma_db"
 RESULTS_DIR = ROOT / "results"
+RUN_LOG_PATH = ROOT / os.getenv("AI201_RUN_LOG", "logs/requests.jsonl")
 
 
 def corpus_path(name: str | None = None) -> Path:

@@ -19,6 +19,9 @@ chroma/
 # Cached model responses
 .cache/
 
+# Local request logs. Commit selected development and evaluation records in results/.
+logs/
+
 # OS noise
 .DS_Store
 Thumbs.db
