@@ -1,0 +1,156 @@
+{
+  "trial": 1,
+  "counts": {
+    "1": 5,
+    "2": 4,
+    "3": 9,
+    "4": 5,
+    "5": 0
+  },
+  "targets": {
+    "1": 5,
+    "2": 6,
+    "3": 11,
+    "4": 5,
+    "5": 6
+  },
+  "details": {
+    "1": [
+      {
+        "case": "answer_1",
+        "passed": true
+      },
+      {
+        "case": "answer_2",
+        "passed": true
+      },
+      {
+        "case": "answer_3",
+        "passed": true
+      },
+      {
+        "case": "answer_4",
+        "passed": true
+      },
+      {
+        "case": "answer_5",
+        "passed": true
+      }
+    ],
+    "2": [
+      {
+        "case": "error_missing",
+        "passed": true
+      },
+      {
+        "case": "error_blank",
+        "passed": true
+      },
+      {
+        "case": "error_wrong_type",
+        "passed": true
+      },
+      {
+        "case": "error_malformed",
+        "passed": true
+      }
+    ],
+    "3": [
+      {
+        "case": "answer_1",
+        "request_id": "65876d21f520483c90eca345b610b0e1",
+        "passed": true
+      },
+      {
+        "case": "answer_2",
+        "request_id": "f8b8a34094f745a39fc87ea3515b4dc7",
+        "passed": true
+      },
+      {
+        "case": "answer_3",
+        "request_id": "65ffe1164fbd4db19431e28556e57dfa",
+        "passed": true
+      },
+      {
+        "case": "answer_4",
+        "request_id": "30772a995f13470a83cad016909aee75",
+        "passed": true
+      },
+      {
+        "case": "answer_5",
+        "request_id": "48d8ad7dbdff4e5f9efd3c8e88dc6f50",
+        "passed": true
+      },
+      {
+        "case": "error_missing",
+        "request_id": "c4a0da2ba4f249bab2244565f01ef2e8",
+        "passed": true
+      },
+      {
+        "case": "error_blank",
+        "request_id": "8750c9c7044f409598e3799840f398bb",
+        "passed": true
+      },
+      {
+        "case": "error_wrong_type",
+        "request_id": "cac43e42c1a8422b956cca58e2f223c6",
+        "passed": true
+      },
+      {
+        "case": "error_malformed",
+        "request_id": "026df780fdca482c8fc96184572cff50",
+        "passed": true
+      }
+    ],
+    "4": [
+      {
+        "case": "answer_1",
+        "request_id": "65876d21f520483c90eca345b610b0e1",
+        "client_ms": 1988.144800066948,
+        "logged_ms": 1986.17,
+        "difference_ms": 1.9748000669478643,
+        "allowed_ms": 198.8144800066948,
+        "passed": true
+      },
+      {
+        "case": "answer_2",
+        "request_id": "f8b8a34094f745a39fc87ea3515b4dc7",
+        "client_ms": 791.4478001184762,
+        "logged_ms": 777.018,
+        "difference_ms": 14.429800118476123,
+        "allowed_ms": 79.14478001184762,
+        "passed": true
+      },
+      {
+        "case": "answer_3",
+        "request_id": "65ffe1164fbd4db19431e28556e57dfa",
+        "client_ms": 587.5603002496064,
+        "logged_ms": 561.311,
+        "difference_ms": 26.249300249606335,
+        "allowed_ms": 58.75603002496064,
+        "passed": true
+      },
+      {
+        "case": "answer_4",
+        "request_id": "30772a995f13470a83cad016909aee75",
+        "client_ms": 579.9059001728892,
+        "logged_ms": 578.221,
+        "difference_ms": 1.684900172889229,
+        "allowed_ms": 57.99059001728892,
+        "passed": true
+      },
+      {
+        "case": "answer_5",
+        "request_id": "48d8ad7dbdff4e5f9efd3c8e88dc6f50",
+        "client_ms": 675.9200999513268,
+        "logged_ms": 674.308,
+        "difference_ms": 1.6120999513268544,
+        "allowed_ms": 67.59200999513268,
+        "passed": true
+      }
+    ],
+    "5": []
+  },
+  "observed_requests": 9,
+  "recorded_requests": 9
+}

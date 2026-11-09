@@ -1,0 +1,4 @@
+{
+  "type": "RuntimeError",
+  "traceback": "Traceback (most recent call last):\n  File \"C:\\Users\\Scott\\Documents\\codepath\\ai201\\ai201-project1-unofficial-guide-starter-v2026\\tools\\run_capstone_eval.py\", line 386, in main\n    trial.execute(questions)\n  File \"C:\\Users\\Scott\\Documents\\codepath\\ai201\\ai201-project1-unofficial-guide-starter-v2026\\tools\\run_capstone_eval.py\", line 295, in execute\n    with self.server(\"missing-index\"):\n         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^\n  File \"C:\\Users\\Scott\\AppData\\Local\\Python\\pythoncore-3.12-64\\Lib\\contextlib.py\", line 137, in __enter__\n    return next(self.gen)\n           ^^^^^^^^^^^^^^\n  File \"C:\\Users\\Scott\\Documents\\codepath\\ai201\\ai201-project1-unofficial-guide-starter-v2026\\tools\\run_capstone_eval.py\", line 217, in server\n    raise RuntimeError(\"Port 5000 already has a listener\")\nRuntimeError: Port 5000 already has a listener\n"
+}

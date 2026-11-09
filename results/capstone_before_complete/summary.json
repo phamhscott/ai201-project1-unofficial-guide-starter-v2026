@@ -1,0 +1,482 @@
+{
+  "label": "before",
+  "trials": [
+    {
+      "trial": 1,
+      "counts": {
+        "1": 5,
+        "2": 4,
+        "3": 9,
+        "4": 5,
+        "5": 0
+      },
+      "targets": {
+        "1": 5,
+        "2": 6,
+        "3": 11,
+        "4": 5,
+        "5": 6
+      },
+      "details": {
+        "1": [
+          {
+            "case": "answer_1",
+            "passed": true
+          },
+          {
+            "case": "answer_2",
+            "passed": true
+          },
+          {
+            "case": "answer_3",
+            "passed": true
+          },
+          {
+            "case": "answer_4",
+            "passed": true
+          },
+          {
+            "case": "answer_5",
+            "passed": true
+          }
+        ],
+        "2": [
+          {
+            "case": "error_missing",
+            "passed": true
+          },
+          {
+            "case": "error_blank",
+            "passed": true
+          },
+          {
+            "case": "error_wrong_type",
+            "passed": true
+          },
+          {
+            "case": "error_malformed",
+            "passed": true
+          }
+        ],
+        "3": [
+          {
+            "case": "answer_1",
+            "request_id": "ea30833a3cbc44adabbe721c763ec204",
+            "passed": true
+          },
+          {
+            "case": "answer_2",
+            "request_id": "26b785eb6fd64c298bf66222f88dbf8b",
+            "passed": true
+          },
+          {
+            "case": "answer_3",
+            "request_id": "f0bfbe40f2bd4ed7a1ea6540d0ecc29c",
+            "passed": true
+          },
+          {
+            "case": "answer_4",
+            "request_id": "ae88ab299462444aa65981ff4feaad60",
+            "passed": true
+          },
+          {
+            "case": "answer_5",
+            "request_id": "8000f9400b5a4ccda313ade0078528db",
+            "passed": true
+          },
+          {
+            "case": "error_missing",
+            "request_id": "057ed3d1bbe04a8ea1311218d52c03cb",
+            "passed": true
+          },
+          {
+            "case": "error_blank",
+            "request_id": "c4756292829f4635a1d029b5ad149d00",
+            "passed": true
+          },
+          {
+            "case": "error_wrong_type",
+            "request_id": "269071e6318f4d7f8f6ec1970e2060e9",
+            "passed": true
+          },
+          {
+            "case": "error_malformed",
+            "request_id": "a6fd6e7249244fa6b56e487ee431d160",
+            "passed": true
+          }
+        ],
+        "4": [
+          {
+            "case": "answer_1",
+            "request_id": "ea30833a3cbc44adabbe721c763ec204",
+            "client_ms": 2065.7967999577522,
+            "logged_ms": 2063.669,
+            "difference_ms": 2.1277999577523588,
+            "allowed_ms": 206.57967999577522,
+            "passed": true
+          },
+          {
+            "case": "answer_2",
+            "request_id": "26b785eb6fd64c298bf66222f88dbf8b",
+            "client_ms": 832.7465001493692,
+            "logged_ms": 831.188,
+            "difference_ms": 1.5585001493692516,
+            "allowed_ms": 83.27465001493692,
+            "passed": true
+          },
+          {
+            "case": "answer_3",
+            "request_id": "f0bfbe40f2bd4ed7a1ea6540d0ecc29c",
+            "client_ms": 801.6808000393212,
+            "logged_ms": 787.692,
+            "difference_ms": 13.988800039321177,
+            "allowed_ms": 80.16808000393212,
+            "passed": true
+          },
+          {
+            "case": "answer_4",
+            "request_id": "ae88ab299462444aa65981ff4feaad60",
+            "client_ms": 1131.6825998947024,
+            "logged_ms": 1106.187,
+            "difference_ms": 25.495599894702536,
+            "allowed_ms": 113.16825998947024,
+            "passed": true
+          },
+          {
+            "case": "answer_5",
+            "request_id": "8000f9400b5a4ccda313ade0078528db",
+            "client_ms": 759.438700042665,
+            "logged_ms": 740.771,
+            "difference_ms": 18.667700042665047,
+            "allowed_ms": 75.9438700042665,
+            "passed": true
+          }
+        ],
+        "5": []
+      },
+      "observed_requests": 9,
+      "recorded_requests": 9
+    },
+    {
+      "trial": 2,
+      "counts": {
+        "1": 5,
+        "2": 4,
+        "3": 9,
+        "4": 5,
+        "5": 0
+      },
+      "targets": {
+        "1": 5,
+        "2": 6,
+        "3": 11,
+        "4": 5,
+        "5": 6
+      },
+      "details": {
+        "1": [
+          {
+            "case": "answer_1",
+            "passed": true
+          },
+          {
+            "case": "answer_2",
+            "passed": true
+          },
+          {
+            "case": "answer_3",
+            "passed": true
+          },
+          {
+            "case": "answer_4",
+            "passed": true
+          },
+          {
+            "case": "answer_5",
+            "passed": true
+          }
+        ],
+        "2": [
+          {
+            "case": "error_missing",
+            "passed": true
+          },
+          {
+            "case": "error_blank",
+            "passed": true
+          },
+          {
+            "case": "error_wrong_type",
+            "passed": true
+          },
+          {
+            "case": "error_malformed",
+            "passed": true
+          }
+        ],
+        "3": [
+          {
+            "case": "answer_1",
+            "request_id": "76cfc28ec453445985f8925ea2941d4f",
+            "passed": true
+          },
+          {
+            "case": "answer_2",
+            "request_id": "7e9cb17449f44017a3bd9b09774c54ab",
+            "passed": true
+          },
+          {
+            "case": "answer_3",
+            "request_id": "95c7573a48a24517af1c117c38214423",
+            "passed": true
+          },
+          {
+            "case": "answer_4",
+            "request_id": "98ab3edc65644966a81cc4c7121b74ac",
+            "passed": true
+          },
+          {
+            "case": "answer_5",
+            "request_id": "62e797c5f2124a4f917137cbb1d745a7",
+            "passed": true
+          },
+          {
+            "case": "error_missing",
+            "request_id": "7ad514f091144bdc84815fc4f21d3d1a",
+            "passed": true
+          },
+          {
+            "case": "error_blank",
+            "request_id": "1ee0d87fcfa64caba1e50458dc7a68ee",
+            "passed": true
+          },
+          {
+            "case": "error_wrong_type",
+            "request_id": "1d7741a09e9248389318eb1b8790aee4",
+            "passed": true
+          },
+          {
+            "case": "error_malformed",
+            "request_id": "7d280bfefd3a4658b12a429d3867efe5",
+            "passed": true
+          }
+        ],
+        "4": [
+          {
+            "case": "answer_1",
+            "request_id": "76cfc28ec453445985f8925ea2941d4f",
+            "client_ms": 1780.7159000076354,
+            "logged_ms": 1778.786,
+            "difference_ms": 1.9299000076352968,
+            "allowed_ms": 178.07159000076354,
+            "passed": true
+          },
+          {
+            "case": "answer_2",
+            "request_id": "7e9cb17449f44017a3bd9b09774c54ab",
+            "client_ms": 593.3619998395443,
+            "logged_ms": 591.617,
+            "difference_ms": 1.7449998395443345,
+            "allowed_ms": 59.33619998395443,
+            "passed": true
+          },
+          {
+            "case": "answer_3",
+            "request_id": "95c7573a48a24517af1c117c38214423",
+            "client_ms": 602.818800136447,
+            "logged_ms": 601.225,
+            "difference_ms": 1.59380013644693,
+            "allowed_ms": 60.281880013644695,
+            "passed": true
+          },
+          {
+            "case": "answer_4",
+            "request_id": "98ab3edc65644966a81cc4c7121b74ac",
+            "client_ms": 529.9069997854531,
+            "logged_ms": 528.324,
+            "difference_ms": 1.5829997854531257,
+            "allowed_ms": 52.99069997854531,
+            "passed": true
+          },
+          {
+            "case": "answer_5",
+            "request_id": "62e797c5f2124a4f917137cbb1d745a7",
+            "client_ms": 640.2321998029947,
+            "logged_ms": 616.651,
+            "difference_ms": 23.581199802994774,
+            "allowed_ms": 64.02321998029947,
+            "passed": true
+          }
+        ],
+        "5": []
+      },
+      "observed_requests": 9,
+      "recorded_requests": 9
+    },
+    {
+      "trial": 3,
+      "counts": {
+        "1": 5,
+        "2": 4,
+        "3": 9,
+        "4": 5,
+        "5": 0
+      },
+      "targets": {
+        "1": 5,
+        "2": 6,
+        "3": 11,
+        "4": 5,
+        "5": 6
+      },
+      "details": {
+        "1": [
+          {
+            "case": "answer_1",
+            "passed": true
+          },
+          {
+            "case": "answer_2",
+            "passed": true
+          },
+          {
+            "case": "answer_3",
+            "passed": true
+          },
+          {
+            "case": "answer_4",
+            "passed": true
+          },
+          {
+            "case": "answer_5",
+            "passed": true
+          }
+        ],
+        "2": [
+          {
+            "case": "error_missing",
+            "passed": true
+          },
+          {
+            "case": "error_blank",
+            "passed": true
+          },
+          {
+            "case": "error_wrong_type",
+            "passed": true
+          },
+          {
+            "case": "error_malformed",
+            "passed": true
+          }
+        ],
+        "3": [
+          {
+            "case": "answer_1",
+            "request_id": "8501361531ab42df819bd0cf776ac617",
+            "passed": true
+          },
+          {
+            "case": "answer_2",
+            "request_id": "9b5d8901513c4c7c9dc45f6da69687a6",
+            "passed": true
+          },
+          {
+            "case": "answer_3",
+            "request_id": "1ff6d7f4a68c4030838e30ef884b22f9",
+            "passed": true
+          },
+          {
+            "case": "answer_4",
+            "request_id": "07d3e96e97244ec5b3ab91994baf348f",
+            "passed": true
+          },
+          {
+            "case": "answer_5",
+            "request_id": "174c0e8163c54cfea9965e853cd456c6",
+            "passed": true
+          },
+          {
+            "case": "error_missing",
+            "request_id": "edcebe2535ed4d62a90953c7c9b6a3c7",
+            "passed": true
+          },
+          {
+            "case": "error_blank",
+            "request_id": "372858c6b30945b9b199ca40ed76fb29",
+            "passed": true
+          },
+          {
+            "case": "error_wrong_type",
+            "request_id": "293de03ede1e483699d572f4e7dd1a79",
+            "passed": true
+          },
+          {
+            "case": "error_malformed",
+            "request_id": "4c703ef1c89744539863b0e4b680b5a4",
+            "passed": true
+          }
+        ],
+        "4": [
+          {
+            "case": "answer_1",
+            "request_id": "8501361531ab42df819bd0cf776ac617",
+            "client_ms": 1828.6906001158059,
+            "logged_ms": 1826.835,
+            "difference_ms": 1.855600115805828,
+            "allowed_ms": 182.8690600115806,
+            "passed": true
+          },
+          {
+            "case": "answer_2",
+            "request_id": "9b5d8901513c4c7c9dc45f6da69687a6",
+            "client_ms": 680.5868996307254,
+            "logged_ms": 660.892,
+            "difference_ms": 19.69489963072533,
+            "allowed_ms": 68.05868996307254,
+            "passed": true
+          },
+          {
+            "case": "answer_3",
+            "request_id": "1ff6d7f4a68c4030838e30ef884b22f9",
+            "client_ms": 720.648200251162,
+            "logged_ms": 718.78,
+            "difference_ms": 1.8682002511620794,
+            "allowed_ms": 72.0648200251162,
+            "passed": true
+          },
+          {
+            "case": "answer_4",
+            "request_id": "07d3e96e97244ec5b3ab91994baf348f",
+            "client_ms": 606.7563001997769,
+            "logged_ms": 605.067,
+            "difference_ms": 1.6893001997768806,
+            "allowed_ms": 60.67563001997769,
+            "passed": true
+          },
+          {
+            "case": "answer_5",
+            "request_id": "174c0e8163c54cfea9965e853cd456c6",
+            "client_ms": 633.6466004140675,
+            "logged_ms": 631.906,
+            "difference_ms": 1.7406004140675577,
+            "allowed_ms": 63.36466004140675,
+            "passed": true
+          }
+        ],
+        "5": []
+      },
+      "observed_requests": 9,
+      "recorded_requests": 9
+    }
+  ],
+  "verdicts": {
+    "1": "MET",
+    "2": "MISSED",
+    "3": "MISSED",
+    "4": "MET",
+    "5": "MISSED"
+  },
+  "source_unchanged": true,
+  "criteria_commit": "e036e3a6081af89e369b9975270d29620e0340d4"
+}

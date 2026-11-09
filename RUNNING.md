@@ -459,7 +459,7 @@ checkout prepared through these instructions can also be used after updating
 it to the same commit as the main repository. Keep port 5000 free, then run:
 
 ```powershell
-.\.venv\Scripts\python.exe tools\run_capstone_eval.py --checkout .cache/capstone-evaluation --label before
+.\.venv\Scripts\python.exe tools\run_capstone_eval.py --checkout .cache/capstone-evaluation --label before --output results/capstone_before_reproduction
 ```
 
 The runner executes three trials with the fixed protocol in `criteria.md`.
@@ -470,7 +470,7 @@ Only that evaluation wrapper injects the specified model errors and missing
 metadata. Its forwarding spy captures real SDK usage metadata independently
 of the application's accounting fields. The production source is unchanged.
 
-Results go to `results/capstone_before/`, including the source fingerprints,
+Results go to the selected `--output` directory, including the source fingerprints,
 criteria commit, HTTP observations, original JSONL records, independent API
 captures, timing comparisons, per-trial scores, and the five-row run log.
 An existing result directory is never overwritten. The runner preserves a
@@ -482,3 +482,11 @@ The later improvement uses the same command with `--label after`, after both
 checkouts have the same new commit. It writes a separate result directory.
 Each trial checks source fingerprints before and after execution so the
 runtime, criteria, and evaluator cannot change silently between trials.
+
+The committed complete baseline is in `results/capstone_before_verified/`.
+Its [report](results/capstone_before_verified/report.md) and
+[manifest](results/capstone_before_verified/manifest.json) record the actual
+command, source commit, criteria commit, and results. The earlier
+`capstone_before/` and `capstone_before_complete/` directories preserve
+incomplete evaluator attempts, as explained in their `ATTEMPT.md` files.
+Use a new output directory for reproduction so these records stay intact.
