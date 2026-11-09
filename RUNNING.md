@@ -426,3 +426,18 @@ Preserve that failed sample before rerunning instead of silently replacing it.
 This measures tokens consumed for this fixed question, rather than dollar
 charges or an average across all city-guide questions. It is the Milestone 3
 operational cost measurement, separate from the capstone acceptance trials.
+
+### Clean-checkout verification record
+
+Milestone 3 tested these instructions in a new local clone of commit `0f6f05f`,
+with a fresh Python 3.12.10 virtual environment, the exact dependency lock,
+and a rebuilt city-guides index. The API key was provisioned in the ignored
+`.env` and the existing per-user ONNX model cache was reused. The service
+started with the documented command on `127.0.0.1:5000`.
+
+The [session transcript](results/capstone_milestone3_session.txt) records
+the commands and actual output. The [request log](results/capstone_milestone3_requests.jsonl)
+contains ten uncached answers plus separate missing-index and blank-input
+failure probes. The [cost summary](results/capstone_milestone3_cost.json)
+contains the ten request identifiers and measured averages. This verification
+used the current local source, without publishing commits to GitHub.

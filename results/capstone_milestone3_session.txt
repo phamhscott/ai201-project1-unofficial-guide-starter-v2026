@@ -1,0 +1,42 @@
+Milestone 3 clean local checkout and operational cost measurement
+Fresh virtual environment and locally provisioned ignored .env
+The existing per-user embedding-model cache is reused
+> git -c safe.directory=C:/Users/Scott/Documents/codepath/ai201/ai201-project1-unofficial-guide-starter-v2026/.cache/capstone-milestone3-clean rev-parse HEAD
+0f6f05fd49f3e669d74f7a48c9d59b931f9021e8
+> git -c safe.directory=C:/Users/Scott/Documents/codepath/ai201/ai201-project1-unofficial-guide-starter-v2026/.cache/capstone-milestone3-clean status --short
+> C:\Users\Scott\Documents\codepath\ai201\ai201-project1-unofficial-guide-starter-v2026\.cache\capstone-milestone3-clean\.venv\Scripts\python.exe --version
+Python 3.12.10
+> C:\Users\Scott\Documents\codepath\ai201\ai201-project1-unofficial-guide-starter-v2026\.cache\capstone-milestone3-clean\.venv\Scripts\python.exe -m pip check
+No broken requirements found.
+Controlled missing-index failure before normal index setup
+> .\.venv\Scripts\python.exe serve.py with AI201_CACHE=0
+GET /health -> 200 {"corpus": "city_guides", "detail": "no index for this corpus \u2014 run `python app.py index`", "index_ready": false, "status": "ok"}
+POST /ask -> 500 {"error": "RuntimeError: unable to answer question"}
+> C:\Users\Scott\Documents\codepath\ai201\ai201-project1-unofficial-guide-starter-v2026\.cache\capstone-milestone3-clean\.venv\Scripts\python.exe app.py --corpus city_guides index
+Corpus: city_guides
+  loaded   14 documents, 28,958 characters, ~2,068 characters per document
+  chunked  98 chunks, 310 characters on average (shortest 23, longest 762), produced by chunker.py::split_documents
+  embedding 98 chunks (first run downloads the model)...
+  stored   98 chunks in 1.7s
+
+Ready. Try: python app.py ask "your question here"
+> .\.venv\Scripts\python.exe serve.py with AI201_CACHE=0
+GET /health -> 200 {"corpus": "city_guides", "detail": "ready", "index_ready": true, "status": "ok"}
+POST /ask -> 400 {"error": "Send JSON with a question in it, like {\"question\": \"When should I visit Kestrelford?\"}"}
+> C:\Users\Scott\Documents\codepath\ai201\ai201-project1-unofficial-guide-starter-v2026\.cache\capstone-milestone3-clean\.venv\Scripts\python.exe tools/measure_cost.py
+Run 1: 766 tokens, 2417.433 ms, request_id=96d4c4c96faa4c489d0bf3de5636e151
+Run 2: 794 tokens, 849.282 ms, request_id=601dff13360a4b2ab516082d857de4c2
+Run 3: 766 tokens, 761.198 ms, request_id=a5af1c6f273b4fd09ee7417a6e8b8160
+Run 4: 766 tokens, 763.041 ms, request_id=da9391c3b9d24eba86097b62eaf4b270
+Run 5: 740 tokens, 641.772 ms, request_id=3074cfd108ac47cd9408d065aee0e7ea
+Run 6: 766 tokens, 621.07 ms, request_id=daaaef84435c48ac8880b62150ec320a
+Run 7: 774 tokens, 545.529 ms, request_id=762de942272343da97a53259ca35ada2
+Run 8: 766 tokens, 669.813 ms, request_id=e0e9fe1303f1400a913d6cf1f281d37d
+Run 9: 766 tokens, 697.141 ms, request_id=db62aa5ab2174754b5a75bcb9784c9c0
+Run 10: 764 tokens, 866.875 ms, request_id=c16171d7db274b919bea929c1608504d
+Mean API tokens per request: 766.8
+Mean server duration: 883.315 ms
+Total API tokens: 7668 across 10 requests
+Summary saved to results\capstone_milestone3_cost.json
+Recorded 12 real request entries including a missing-index error and blank-input error
+Measured 10 uncached answers with no acceptance verdicts assigned

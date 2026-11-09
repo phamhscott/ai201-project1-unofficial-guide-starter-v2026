@@ -805,6 +805,101 @@ global `--corpus` option must appear before `index`. Its four real request
 records are in
 [`results/capstone_milestone2_clean_checkout.jsonl`](results/capstone_milestone2_clean_checkout.jsonl).
 
+## Instrumentation
+
+**Claim:** The local HTTP service writes a structured record for each question
+request, including requests that fail.
+
+**Location:** `serve.py::start_request_record` assigns the timestamp and request
+identifier. `serve.py::finish_request_record` records the parsed input, returned
+output, HTTP status, elapsed milliseconds, corpus, model, cache setting, and
+per-request API usage. `request_log.py::append_record` writes the JSONL file.
+`generate.py::measure_usage` attributes calls and tokens to the current request.
+
+**Run path:** Path B, using the single startup command in
+[`RUNNING.md`](RUNNING.md#unit-9-capstone-local-run-path). Milestone 3 verified it
+in a new local clone of commit `0f6f05f`, using Python 3.12.10, a fresh virtual
+environment installed from `requirements-lock.txt`, and a newly built Chroma
+index. The ignored `.env` was provisioned locally with the API key. The existing
+per-user ONNX model cache was reused. This checked a local clone of the current
+code, rather than claiming that unpushed commits were available on GitHub.
+
+The complete command and response transcript is in
+[`results/capstone_milestone3_session.txt`](results/capstone_milestone3_session.txt).
+The normal setup succeeded with the corrected command documented in Milestone 2.
+A separate controlled probe started the server before indexing. Its health
+response reported `index_ready: false`, and `store.py::search` raised the
+missing-index error recorded as HTTP 500. After indexing and restarting, a
+blank question returned HTTP 400. Both failed requests made zero model calls.
+They are retained as failure evidence and excluded from the generated-answer
+cost sample.
+
+**Output:** These are all 12 unmodified request records from that real session,
+also committed in
+[`results/capstone_milestone3_requests.jsonl`](results/capstone_milestone3_requests.jsonl).
+The first two are the deliberate failures. The remaining ten are the uncached
+cost sample. Health checks are outside the question log.
+
+```jsonl
+{"timestamp": "2026-11-09T21:27:28.204548+00:00", "request_id": "0f863b6cda9a4e4d8520869ee8d3401a", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 0, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 0, "output_tokens": 0, "total_tokens": 0}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"error": "RuntimeError: unable to answer question"}, "status_code": 500, "duration_ms": 26.202}
+{"timestamp": "2026-11-09T21:27:32.085202+00:00", "request_id": "c4e1d46c487b4c1893b27a06becce818", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 0, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 0, "output_tokens": 0, "total_tokens": 0}, "input": {"question": " "}, "output": {"error": "Send JSON with a question in it, like {\"question\": \"When should I visit Kestrelford?\"}"}, "status_code": 400, "duration_ms": 0.705}
+{"timestamp": "2026-11-09T21:27:32.215513+00:00", "request_id": "96d4c4c96faa4c489d0bf3de5636e151", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 50, "total_tokens": 766}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (*guide_kestrelford.md*). Additionally, August is a busy time with walkers (*guide_kestrelford.md* and *guide_seasons.md*).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 2417.433}
+{"timestamp": "2026-11-09T21:27:34.662986+00:00", "request_id": "601dff13360a4b2ab516082d857de4c2", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 78, "total_tokens": 794}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (*guide_kestrelford.md*). Additionally, August is busy with walkers, while November to February features a much reduced Saturday market and a difficult single-track approach road that can cut the town off for a day or two (*guide_kestrelford.md* and *guide_seasons.md*).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 849.282}
+{"timestamp": "2026-11-09T21:27:35.519298+00:00", "request_id": "a5af1c6f273b4fd09ee7417a6e8b8160", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 50, "total_tokens": 766}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (*guide_kestrelford.md*). Additionally, August is a busy time with walkers (*guide_kestrelford.md* and *guide_seasons.md*).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 761.198}
+{"timestamp": "2026-11-09T21:27:36.287174+00:00", "request_id": "da9391c3b9d24eba86097b62eaf4b270", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 50, "total_tokens": 766}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (*guide_kestrelford.md*). Additionally, August is a busy time with walkers (*guide_kestrelford.md* and *guide_seasons.md*).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 763.041}
+{"timestamp": "2026-11-09T21:27:37.066379+00:00", "request_id": "3074cfd108ac47cd9408d065aee0e7ea", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 24, "total_tokens": 740}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "According to `guide_kestrelford.md`, you should visit Kestrelford in late spring and early autumn.", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 641.772}
+{"timestamp": "2026-11-09T21:27:37.714859+00:00", "request_id": "daaaef84435c48ac8880b62150ec320a", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 50, "total_tokens": 766}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (*guide_kestrelford.md*). Additionally, August is a busy time with walkers (*guide_kestrelford.md* and *guide_seasons.md*).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 621.07}
+{"timestamp": "2026-11-09T21:27:38.361324+00:00", "request_id": "762de942272343da97a53259ca35ada2", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 58, "total_tokens": 774}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "Based on the provided documents, you should visit Kestrelford in late spring and early autumn (*guide_kestrelford.md*). Additionally, August is noted as a busy month with walkers (*guide_kestrelford.md* and *guide_seasons.md*).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 545.529}
+{"timestamp": "2026-11-09T21:27:38.913168+00:00", "request_id": "e0e9fe1303f1400a913d6cf1f281d37d", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 50, "total_tokens": 766}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (*guide_kestrelford.md*). Additionally, August is a busy time with walkers (*guide_kestrelford.md* and *guide_seasons.md*).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 669.813}
+{"timestamp": "2026-11-09T21:27:39.590033+00:00", "request_id": "db62aa5ab2174754b5a75bcb9784c9c0", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 50, "total_tokens": 766}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (*guide_kestrelford.md*). Additionally, August is a busy time with walkers (*guide_kestrelford.md* and *guide_seasons.md*).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 697.141}
+{"timestamp": "2026-11-09T21:27:40.315391+00:00", "request_id": "c16171d7db274b919bea929c1608504d", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 48, "total_tokens": 764}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (guide_kestrelford.md). August is also a time when the town fills with walkers (guide_kestrelford.md and guide_seasons.md).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 866.875}
+```
+
+## What It Costs
+
+**Measured cost:** **766.8 API tokens per generated
+question request**, averaged over ten sequential requests to
+`gemini-3.5-flash-lite`. The ten calls consumed
+**7,668 tokens** in total, consisting of
+7,160 input tokens and
+508 output tokens. The mean was
+716 input tokens and
+50.8 output tokens per request.
+
+**Method:** Start the local server with `AI201_CACHE=0`, then run
+`tools/measure_cost.py` as documented in `RUNNING.md`. The client sends
+`When should I visit Kestrelford?` ten times, matching each response's
+`X-Request-ID` to its actual JSONL record. All ten requests returned an answer,
+made exactly one API call, had zero local cache hits, and had complete usage
+metadata. No measured request was discarded. The two deliberate failure
+probes were separate from these ten requests. The average is the sum of the
+ten API-reported totals divided by ten, or
+`7668 / 10 = 766.8` tokens.
+
+**Location:** `generate.py::_record_tokens` reads the API's `usage_metadata`,
+`serve.py::finish_request_record` stores the per-request usage, and
+`tools/measure_cost.py::main` computes the totals and arithmetic means. The
+sample identifiers, per-run measurements, and computed summary are committed
+in [`results/capstone_milestone3_cost.json`](results/capstone_milestone3_cost.json).
+
+**Output:**
+
+```text
+Mean API tokens per request: 766.8
+Mean server duration: 883.315 ms
+Total API tokens: 7668 across 10 requests
+```
+
+The mean server elapsed time was 0.883 seconds
+per request, including the first answer's model-loading time. It excludes setup,
+index building, writing the log entry, and network transfer to the client.
+Elapsed time is not CPU time. Tokens are the cost unit here, rather than a
+dollar charge inferred from a pricing page. This sample measures one fixed
+question and does not establish the average cost of every city-guide question.
+It is an operational measurement for Milestone 3, with no capstone acceptance
+verdicts assigned. The capstone criteria must still be committed before the
+formal before-and-after evaluation.
+
 ## How I Used AI - Unit 9 Build
 
 **Tool:** Codex.
@@ -817,6 +912,12 @@ to that direction and asked it to write Milestone 1, with no semicolons.
 and commit as it went. It added logging, timing, and request-scoped accounting,
 then ran synthetic development tests and real HTTP and CLI checks. The clean
 checkout exposed an incorrect setup command, which it corrected and reran.
+
+**Instrumentation:** I asked Codex to complete Milestone 3. It tested a new local
+checkout, captured two deliberate failure probes and ten uncached API requests,
+and calculated the mean token usage from the real structured records. It pasted
+the records and method into the README. These measurements are operational
+evidence and were not scored against capstone acceptance criteria.
 
 **Student review and reflection:** Scott still needs to review the code and
 describe what he changed or learned. This build record does not supply a
