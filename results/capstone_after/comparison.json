@@ -1,0 +1,49 @@
+{
+  "before_source_commit": "80d6a0340a665a75f83d5ba3e6225059e85be74e",
+  "after_source_commit": "c579e1549420a9b1f1c70222bca1c1475e137a1e",
+  "criteria_commit": "e036e3a6081af89e369b9975270d29620e0340d4",
+  "criteria_unchanged": true,
+  "changed_fixed_inputs": [
+    "generate.py"
+  ],
+  "before_verdicts": {
+    "1": "MET",
+    "2": "MET",
+    "3": "MET",
+    "4": "MET",
+    "5": "MISSED"
+  },
+  "after_verdicts": {
+    "1": "MET",
+    "2": "MET",
+    "3": "MET",
+    "4": "MET",
+    "5": "MET"
+  },
+  "before_normal_client_distribution": {
+    "sample_count": 15,
+    "mean_ms": 1008.1974799744785,
+    "median_ms": 722.6656000129879,
+    "min_ms": 540.9172996878624,
+    "max_ms": 2007.488400209695
+  },
+  "after_normal_client_distribution": {
+    "sample_count": 15,
+    "mean_ms": 2141.1323999365172,
+    "median_ms": 1938.2977997884154,
+    "min_ms": 746.201700065285,
+    "max_ms": 4106.208399869502
+  },
+  "before_accounting_first_model_calls": [
+    1,
+    1,
+    4
+  ],
+  "after_accounting_first_model_calls": [
+    1,
+    1,
+    1
+  ],
+  "before_recorded_retry_messages": 4,
+  "after_recorded_retry_messages": 0
+}

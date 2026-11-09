@@ -1,0 +1,1 @@
+{"timestamp": "2026-11-09T22:37:37.204683+00:00", "request_id": "bad51d25f3654d2fb22d9048bb6e1f7d", "attempt": 1, "model": "gemini-3.5-flash-lite", "source": "synthetic_fault_probe", "question": "When is the recommended time to go visit Kestrelford?", "outcome": "exception", "exception_type": "RuntimeError", "usage_metadata": null}

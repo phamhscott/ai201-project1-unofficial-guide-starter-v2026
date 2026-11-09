@@ -359,7 +359,7 @@ selected real records into `results/` when preserving coursework evidence.
 | `usage.total_tokens` | API-reported total, including any additional token categories |
 | `usage.usage_complete` | Whether every API attempt returned complete usage metadata |
 
-Timing includes retrieval, model loading, generation, and any retry waits.
+Timing includes retrieval, model loading, generation, proactive pacing, and retry waits.
 It ends before the JSONL append and excludes network transfer to the client.
 An invalid JSON body has `input: null` because it could not be parsed.
 Health checks are excluded from the question log.
@@ -490,3 +490,18 @@ command, source commit, criteria commit, and results. The earlier
 `capstone_before/` and `capstone_before_complete/` directories preserve
 incomplete evaluator attempts, as explained in their `ATTEMPT.md` files.
 Use a new output directory for reproduction so these records stay intact.
+
+### Measured pacing improvement
+
+`generate.py::_wait_for_slot` now reserves spaced model-attempt slots from the
+existing `REQUESTS_PER_MINUTE = 30` setting. The interval is two seconds, and
+the first attempt in a fresh server waits too. Requests in the same process
+share a reservation lock. Cache hits and relevance-gate refusals bypass this
+model-call wait. The limiter is local to the server process and does not
+coordinate the API account across other processes or machines.
+
+The full three-trial retest is in `results/capstone_after/`. Its
+[report](results/capstone_after/report.md) compares the unchanged criteria
+before and after the one pacing change, including the increase in measured
+answer time. To reproduce that set without overwriting it, use a new output
+directory such as `--label after --output results/capstone_after_reproduction`.
