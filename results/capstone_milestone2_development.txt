@@ -1,0 +1,16 @@
+Development smoke check with real embeddings and the configured Gemini model
+GET /health -> 200 {"corpus": "city_guides", "detail": "ready", "index_ready": true, "status": "ok"}
+POST /ask -> 200 request_id=7aade8b168c64eb5b0486ede9c5107d4 {"answer": "According to `guide_kestrelford.md`, late spring and early autumn are the best times to go to Kestrelford.", "best_distance": 0.3254, "corpus": "city_guides", "question": "When should I visit Kestrelford, according to the city guide?", "refused": false, "sources": ["guide_kestrelford.md", "guide_marchwood.md", "guide_seasons.md", "guide_walking.md"], "threshold": 0.65}
+POST /ask -> 200 request_id=742e3b34e5a94169b38927f4579ab7f6 {"answer": "According to `guide_kestrelford.md`, late spring and early autumn are the best times to go to Kestrelford.", "best_distance": 0.3254, "corpus": "city_guides", "question": "When should I visit Kestrelford, according to the city guide?", "refused": false, "sources": ["guide_kestrelford.md", "guide_marchwood.md", "guide_seasons.md", "guide_walking.md"], "threshold": 0.65}
+POST /ask -> 200 request_id=a1a6032d3348479ebfc0bd8df9620a38 {"answer": "I don't have enough information about that.", "best_distance": 0.8365, "corpus": "city_guides", "question": "How do I write a for loop in Rust?", "refused": true, "sources": [], "threshold": 0.65}
+POST /ask -> 400 request_id=0fe1d92fd13f4453a4d7d4a785e302c6 {"error": "Send JSON with a question in it, like {\"question\": \"When should I visit Kestrelford?\"}"}
+CLI exit code: 0
+(best distance 0.325, cutoff 0.65)
+
+According to `guide_kestrelford.md`, late spring and early autumn are the best times to go to Kestrelford.
+
+Sources retrieved: guide_kestrelford.md, guide_marchwood.md, guide_seasons.md, guide_walking.md
+
+0 model calls this session, 1 served from cache
+Verified four matching request records and the original CLI answer path
+Development checks passed. No capstone acceptance verdicts were assigned.

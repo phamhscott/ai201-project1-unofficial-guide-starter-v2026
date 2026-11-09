@@ -217,8 +217,8 @@ gunicorn serve:app                 # the way a host starts it
 > the first request after a quiet spell waits roughly a minute for it to wake
 > up. That's the tier, not your code.
 
-`serve.py` has **no logging and no timing in it on purpose** — building that is
-the week 9 exercise, and it is easier to instrument something you wrote.
+The Unit 9 extension adds structured logging, timing, and per-request API usage.
+The capstone local setup below is the run path for this submission.
 
 ---
 
@@ -255,3 +255,135 @@ weeks.
 
 `results/` is deliberately **not** in `.gitignore`. Your run logs are evidence
 that the test actually happened, and they're part of what gets graded.
+
+---
+
+## Unit 9 capstone local run path
+
+This is **Path B: local with logs**, on Windows with Python **3.12.10**.
+The server runs on this computer at `http://127.0.0.1:5000`.
+Gemini still needs an API key and an internet connection to generate answers.
+Embeddings and the Chroma index run locally.
+
+### First-time setup from a clean checkout
+
+Run these commands in PowerShell from the repository root. The virtual
+environment paths avoid depending on shell activation.
+
+```powershell
+py -3.12 -m venv .venv
+.\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
+Copy-Item .env.example .env
+```
+
+Put your Gemini API key in the new `.env` file. Keep that file local.
+The committed `requirements-lock.txt` pins the installed development
+dependencies to exact versions. `requirements.txt` retains the starter's
+allowed version ranges. The lock file targets this Windows and Python setup.
+
+Build the index once before starting the server:
+
+```powershell
+.\.venv\Scripts\python.exe app.py index --corpus city_guides
+```
+
+This reads the committed corpus and builds the ignored `chroma_db/` directory.
+On a new machine, Chroma also downloads its ONNX `all-MiniLM-L6-v2` embedding
+model. The measured local model files are listed below. These are disk sizes,
+not a measurement of memory use.
+
+| Model file | Bytes |
+|---|---:|
+| `onnx.tar.gz` download archive | 83,178,821 |
+| `onnx/model.onnx` | 90,387,606 |
+| `onnx/tokenizer.json` | 711,661 |
+| `onnx/vocab.txt` | 231,508 |
+| `onnx/config.json` | 650 |
+| `onnx/tokenizer_config.json` | 518 |
+| `onnx/special_tokens_map.json` | 125 |
+
+Chroma caches these files under
+`~/.cache/chroma/onnx_models/all-MiniLM-L6-v2/`. The cache and the rebuilt index
+are not committed. No local generation model is needed.
+
+### Single startup command
+
+After setup and indexing, run:
+
+```powershell
+.\.venv\Scripts\python.exe serve.py
+```
+
+Leave this terminal open. Stop the service with Ctrl+C. The Flask development
+server is used for this local path and binds to `127.0.0.1`. Debug mode is off
+by default. Gunicorn is retained in the starter dependencies and is not used
+by this Windows run path.
+
+In another PowerShell terminal:
+
+```powershell
+Invoke-RestMethod -Uri http://127.0.0.1:5000/health
+Invoke-RestMethod -Uri http://127.0.0.1:5000/ask -Method Post -ContentType application/json -Body '{"question":"When should I visit Kestrelford?"}'
+Get-Content logs\requests.jsonl -Tail 1
+```
+
+The health response must show `index_ready: true` before asking questions.
+Each `POST /ask` appends one JSON object to `logs/requests.jsonl`.
+The `X-Request-ID` response header matches the record's `request_id`.
+The log directory must be writable. Local logs are ignored by Git. Copy
+selected real records into `results/` when preserving coursework evidence.
+
+### What the log measures
+
+| Field | Meaning |
+|---|---|
+| `timestamp` | UTC time when the request entered the application |
+| `input`, `output` | Parsed JSON input and the returned JSON answer or error |
+| `status_code` | HTTP result, including successful refusals as 200 |
+| `duration_ms` | Elapsed server time measured with a monotonic clock |
+| `model`, `corpus`, `cache_enabled` | Configuration used by this request |
+| `usage.model_calls` | API call attempts made during this request |
+| `usage.cache_hits` | Answers returned from the local response cache |
+| `usage.prompt_tokens`, `usage.output_tokens` | Counts reported by the API |
+| `usage.total_tokens` | API-reported total, including any additional token categories |
+| `usage.usage_complete` | Whether every API attempt returned complete usage metadata |
+
+Timing includes retrieval, model loading, generation, and any retry waits.
+It ends before the JSONL append and excludes network transfer to the client.
+An invalid JSON body has `input: null` because it could not be parsed.
+Health checks are excluded from the question log.
+
+Cache hits, relevance-gate refusals, and invalid input make no generation call
+and have zero new API tokens. When a call fails or usage metadata is missing,
+the token fields are `null` and `usage_complete` is false. Unknown cost is not
+reported as zero. Tokens measure API usage, not a dollar charge or CPU time.
+
+To measure independent model trials later, set this in the server terminal
+before starting it:
+
+```powershell
+$env:AI201_CACHE = "0"
+.\.venv\Scripts\python.exe serve.py
+```
+
+Restart the server after changing environment settings. To restore the default
+cache behavior, remove the shell override and any `AI201_CACHE=0` in `.env`:
+
+```powershell
+Remove-Item Env:AI201_CACHE -ErrorAction SilentlyContinue
+```
+
+### Development checks
+
+```powershell
+.\.venv\Scripts\python.exe -m unittest discover -s tests -v
+.\.venv\Scripts\python.exe tools\dev_session.py
+```
+
+The unit tests use synthetic responses to check logging and accounting.
+`tools/dev_session.py` starts the actual server on a free loopback port, sends
+four HTTP requests, checks the original CLI answer path, and stops the server.
+It uses the real embedding model and configured Gemini API. With caching
+enabled, a repeat session may reuse the first session's answer. It writes a
+text transcript beside the JSONL log, plus the server's console output.
+These are development checks, separate from the later three-trial evaluation.

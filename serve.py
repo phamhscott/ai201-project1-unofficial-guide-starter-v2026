@@ -147,12 +147,7 @@ def ask():
 
 
 def main():
-    # Hosts tell you which port to listen on through PORT, and they expect you
-    # on 0.0.0.0. Binding 127.0.0.1 instead works perfectly on your laptop and
-    # then answers nothing at all once deployed, because the host's router
-    # can't reach a socket that only accepts connections from inside the
-    # container. It is the single most common way a first deploy "succeeds"
-    # and is unreachable.
+    # Path B runs on this computer. PORT allows a second local instance.
     port = int(os.getenv("PORT", "5000"))
 
     # Debug mode reloads on save, which is handy, and prints a console that
@@ -167,10 +162,11 @@ def main():
     print(
         f"  curl -X POST http://localhost:{port}/ask \\\n"
         f"    -H 'Content-Type: application/json' \\\n"
-        f"    -d '{{\"question\": \"is the housing lottery random?\"}}'\n"
+        f"    -d '{{\"question\": \"When should I visit Kestrelford?\"}}'\n"
     )
 
-    app.run(host="0.0.0.0", port=port, debug=debug)
+    print(f"Request log: {config.RUN_LOG_PATH}\n")
+    app.run(host="127.0.0.1", port=port, debug=debug)
 
 
 if __name__ == "__main__":
