@@ -2,7 +2,7 @@
 
 Scott Pham, City-Guides Corpus
 
-For the final project, start with the [Unit 9 capstone](#unit-9-capstone).
+For the final project, start with the [Unit 9 capstone](#capstone).
 The [submission audit](results/capstone_submission_audit.md) records the local
 checks and the publication status at the time of review.
 
@@ -667,40 +667,14 @@ unfiltered retrieval before running the formal after-test.
 
 ---
 
-# Unit 9 Capstone
+## Capstone
 
-## The Shape
+**What This Extends**
 
-I am extending The Unofficial Guide, my Project 1 city-guides RAG system,
-using **Shape A: Deploy and instrument**. The extension will add an operational
-layer around the existing HTTP service in `serve.py`, which already calls the
-same retrieval, relevance gate, and answer pipeline as the command line. I will
-use **Path B: local with logs**, with one documented startup command in
-`RUNNING.md` and setup instructions checked from a clean checkout. Each question
-request will write a structured log record with a timestamp, the input, the
-answer or error, and the elapsed time. I will also record actual token usage
-per request so I can measure the cost of running the system. The service,
-embedding model, and vector database will run locally, while generated answers
-will continue to use the Gemini API.
-
-## Out of Scope
-
-- Changing the corpus, chunking strategy, or existing hybrid retrieval.
-- Building a new interface or adding new question-answering capabilities.
-- Publishing to a cloud host or adding a hosted monitoring dashboard.
-
-## Scope Check
-
-I am keeping the implementation within a roughly 90-minute build budget by
-reusing `serve.py`, `app.py::ask_pipeline`, and the token counters in
-`generate.py`. The planned changes are request logging, timing, per-request
-token accounting, and reproducible local setup documentation. A JSONL file
-will hold the structured records, without a separate logging service. This
-leaves the rest of the unit for writing and committing five capstone criteria
-before formal evaluation, running three trials per criterion before and after
-one improvement, and documenting the results and remaining limitations.
-
-## Build Extension
+I am extending The Unofficial Guide, my Project 1 city-guides RAG system.
+The extension adds structured request logging, timing, per-request API token
+accounting, and a reproducible local run path around the existing HTTP service.
+It also adds model-call pacing based on the baseline retry diagnosis.
 
 The operational layer is implemented around the existing local HTTP service.
 `serve.py::start_request_record` starts a monotonic timer and assigns a request
@@ -715,15 +689,54 @@ Cache hits and refusals have zero new generation tokens. Failed API attempts
 or missing usage metadata make the request's token total unknown, represented
 by `null`. The recorded total comes from the API rather than an estimated price.
 
-The run path and environment are documented in
+**The Shape**
+
+I chose **Shape A: Deploy and instrument**, using **Path B: local with logs**.
+The existing HTTP service in `serve.py` calls the same retrieval, relevance
+gate, and answer pipeline as the command line. The service, embedding model,
+and vector database run locally, while generated answers use the Gemini API.
+
+### Out of Scope
+
+The following work is out of scope for this extension:
+
+- Changing the corpus, chunking strategy, or existing hybrid retrieval.
+- Building a new interface or adding new question-answering capabilities.
+- Publishing to a cloud host or adding a hosted monitoring dashboard.
+
+### Scope Check
+
+I am keeping the implementation within a roughly 90-minute build budget by
+reusing `serve.py`, `app.py::ask_pipeline`, and the token counters in
+`generate.py`. The planned changes are request logging, timing, per-request
+token accounting, and reproducible local setup documentation. A JSONL file
+will hold the structured records, without a separate logging service. This
+leaves the rest of the unit for writing and committing five capstone criteria
+before formal evaluation, running three trials per criterion before and after
+one improvement, and documenting the results and remaining limitations.
+
+**Running It**
+
+Use **Path B: local with logs**, on Windows with Python **3.12.10**.
+The setup commands, environment, index-building step, and embedding-model
+file sizes are documented in
 [`RUNNING.md`](RUNNING.md#unit-9-capstone-local-run-path), with exact dependency
-versions in [`requirements-lock.txt`](requirements-lock.txt).
+versions in [`requirements-lock.txt`](requirements-lock.txt). Generation needs
+a Gemini API key in the ignored `.env` file and an internet connection.
+After setup and indexing, start the service from the repository root:
 
-## Development Check
+```powershell
+.\.venv\Scripts\python.exe serve.py
+```
 
-These are Milestone 2 development checks, not the capstone acceptance trials.
-The capstone's five criteria still need to be written and committed before
-formal evaluation. No acceptance verdicts have been assigned.
+The service listens at `http://127.0.0.1:5000`. Keep the terminal open and
+follow the health-check and question-request examples in `RUNNING.md`.
+
+### Development Check
+
+These Milestone 2 development checks were recorded before the capstone's
+five criteria were written and committed. They establish the local run path
+and are separate from the later formal acceptance trials.
 
 **Claim:** A real local session returned a sourced answer, reused it from the
 cache, refused an unrelated question, rejected blank input, and retained the
@@ -810,7 +823,7 @@ global `--corpus` option must appear before `index`. Its four real request
 records are in
 [`results/capstone_milestone2_clean_checkout.jsonl`](results/capstone_milestone2_clean_checkout.jsonl).
 
-## Instrumentation
+**Instrumentation**
 
 **Claim:** The local HTTP service writes a structured record for each question
 request, including requests that fail.
@@ -860,7 +873,7 @@ cost sample. Health checks are outside the question log.
 {"timestamp": "2026-11-09T21:27:40.315391+00:00", "request_id": "c16171d7db274b919bea929c1608504d", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": false, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 48, "total_tokens": 764}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (guide_kestrelford.md). August is also a time when the town fills with walkers (guide_kestrelford.md and guide_seasons.md).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 866.875}
 ```
 
-## What It Costs
+**What It Costs**
 
 **Measured cost:** **766.8 API tokens per generated
 question request**, averaged over ten sequential requests to
@@ -915,7 +928,13 @@ improvement. The later before-and-after evaluation uses the committed
 separate answer-time measurements reported below. The cost sample is retained
 as measured alongside those timings.
 
-## Run Log - Before (Unit 9)
+**Run Log and Verdicts**
+
+Milestone 3 required the operational logs and ten-run cost measurement before
+the criteria milestone. Those earlier records are preserved above. The five
+capstone criteria were committed before the formal acceptance trials below.
+
+### Run Log - Before (Unit 9)
 
 The baseline ran the committed five-criterion protocol three times with the
 same application, criteria, and evaluator throughout the complete set.  The complete set
@@ -1103,6 +1122,25 @@ The matching request record is in
 {"timestamp": "2026-11-09T22:21:10.087616+00:00", "request_id": "8968a1b137c74dcb9151028c813bfab8", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": true, "usage": {"model_calls": 4, "cache_hits": 0, "usage_complete": false, "prompt_tokens": null, "output_tokens": null, "total_tokens": null}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (*guide_kestrelford.md*). Additionally, August is a busy time with walkers (*guide_kestrelford.md* and *guide_seasons.md*).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 9227.479}
 ```
 
+### Target I Would Tighten
+
+I would tighten criterion 5 by expanding its one-call requirement from one
+supported accounting question per trial to all five fixed in-scope questions
+listed in `criteria.md`. With caching disabled, each question would need
+exactly one real model-call attempt and correct per-request usage attribution
+in each of three trials, giving a target of **15/15 one-call answers**.
+The existing cache, refusal, invalid-input, missing-metadata, and exception
+checks would remain part of the accounting evaluation.
+
+The baseline's only missed criterion was criterion 5, where one accounting
+request needed four attempts after rate-limit errors. A separate normal
+question also needed two attempts. Requiring one attempt across all five
+questions would test whether pacing holds across more of the workload than
+the single repeated accounting question. Any retry would miss the proposed
+one-call target, even if its usage were logged correctly. This is a proposed
+future target that has not been formally evaluated. The original criteria
+and both run logs remain unchanged.
+
 ### Limits exposed by the baseline
 
 The verdicts concern the five operational contracts. They do not establish
@@ -1129,7 +1167,9 @@ by `serve.py::ask`. The exact trial 3 response is preserved in
 The baseline is preserved before any system improvement. No fix or after-run
 results are claimed in this milestone.
 
-## Diagnosis and One Improvement (Unit 9)
+**The Improvement**
+
+### Diagnosis and One Improvement (Unit 9)
 
 The baseline verdicts remain MET for criteria 1 through 4 and MISSED for
 criterion 5. The single scored miss was trial 3's first accounting request:
@@ -1234,7 +1274,7 @@ accounting, concurrent usage isolation, and evaluator scoring checks.
 }
 ```
 
-## Run Log - After (Unit 9)
+### Run Log - After (Unit 9)
 
 The full fixed protocol ran three times after the one pacing change. Every
 trial rebuilt the isolated index and used fresh server processes. The five
@@ -1336,7 +1376,7 @@ and its matching record is from [requests.jsonl](results/capstone_after/trial_3/
 {"timestamp": "2026-11-09T22:38:05.610856+00:00", "request_id": "626268acaeaf4b07a9ee1e4ee1bb4188", "method": "POST", "path": "/ask", "corpus": "city_guides", "model": "gemini-3.5-flash-lite", "cache_enabled": true, "usage": {"model_calls": 1, "cache_hits": 0, "usage_complete": true, "prompt_tokens": 716, "output_tokens": 50, "total_tokens": 766}, "input": {"question": "When should I visit Kestrelford?"}, "output": {"answer": "You should visit Kestrelford in late spring and early autumn (*guide_kestrelford.md*). Additionally, August is a busy time with walkers (*guide_kestrelford.md* and *guide_seasons.md*).", "best_distance": 0.3251, "corpus": "city_guides", "question": "When should I visit Kestrelford?", "refused": false, "sources": ["guide_kestrelford.md", "guide_seasons.md"], "threshold": 0.65}, "status_code": 200, "duration_ms": 3970.474}
 ```
 
-## Before and After (Unit 9)
+### Before and After (Unit 9)
 
 Both result sets use the same targets. Each triple lists run 1, run 2, and run 3.
 
@@ -1392,12 +1432,17 @@ The baseline answer-content error also remains a separate limitation because
 no prompt or retrieval change was made. Only one application improvement was
 attempted, and the original targets were not relaxed.
 
-## What's Still Broken (Unit 9)
+**What's Still Broken**
 
 No capstone criterion remains MISSED after the improvement. The earlier
 criterion 5 miss remains in the before table, and its retry mechanism and
 after results are documented above. Passing the operational criteria does
 not establish that every generated answer is focused or factually correct.
+
+The proposed tighter target for criterion 5 appears with its baseline miss
+diagnosis above.
+
+### Remaining Limitations
 
 This extension improves how the existing guide is run and accessed through a
 documented local HTTP interface, with logs, timing, and measured usage. It
@@ -1433,7 +1478,7 @@ HTTP instance still sends questions to one configured corpus through
 across several corpora would need routing, source separation, and a broader
 evaluation. That remains future work.
 
-## What I'd Do Next (Unit 9)
+### What I'd Do Next (Unit 9)
 
 With another unit, I would first check every factual claim in generated answers
 against its named source, then use the mismatches to decide whether retrieval
@@ -1441,7 +1486,7 @@ or the grounding prompt needs attention. This comes before multi-corpus
 retrieval because increasing the range of sources would make the existing
 focus and attribution weaknesses harder to diagnose.
 
-## How I Used AI - Unit 9 Build
+**How I Used AI**
 
 **1. Implementing the local extension with AI.** I asked for help extending
 the existing project after discussing which shape would keep the work simple.
